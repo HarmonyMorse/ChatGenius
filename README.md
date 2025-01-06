@@ -1,80 +1,121 @@
 # ChatGenius
 
-A real-time messaging application with AI-powered features for smarter workplace communication.
+A modern real-time messaging application with AI-powered features, inspired by Slack. ChatGenius enables seamless team communication with features like channels, direct messaging, and AI avatars.
 
 ## Tech Stack
 
-- **Frontend**: React with JavaScript, TailwindCSS
-- **Backend**: Node.js, Express
-- **Database**: MongoDB
-- **Authentication**: Clerk
-- **Real-time Communication**: Socket.IO
-- **Deployment**: AWS
-- **Version Control**: GitHub
+### Frontend
+- React (Vite)
+- Socket.io Client
+- Supabase Client
 
-## Prerequisites
+### Backend
+- Node.js
+- Express
+- Socket.io
+- Supabase
 
-- Node.js (v16 or higher)
-- npm or yarn
-- MongoDB
-- Clerk account for authentication
-- AWS account for deployment
+### Database & Authentication
+- Supabase (PostgreSQL)
+- Clerk (Authentication)
+
+## Features
+- Real-time messaging
+- Channel-based communication
+- Direct messaging
+- File sharing
+- User presence and status
+- Threaded conversations
+- Emoji reactions
+- AI-powered digital twins
 
 ## Getting Started
 
-1. Clone the repository:
-   ```bash
-   git clone <your-repo-url>
-   cd chatgenius
-   ```
+### Prerequisites
+- Node.js (v18 or higher)
+- npm
+- Supabase account
+- Clerk account (for authentication)
 
-2. Install dependencies:
-   ```bash
-   # Install frontend dependencies
-   cd client
-   npm install
+### Installation
 
-   # Install backend dependencies
-   cd ../server
-   npm install
-   ```
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd chatgenius
+```
 
-3. Set up environment variables:
-   Create `.env` files in both client and server directories with the necessary environment variables.
+2. Install frontend dependencies
+```bash
+cd client
+npm install
+```
 
-4. Start the development servers:
-   ```bash
-   # Start backend server
-   cd server
-   npm run dev
+3. Install backend dependencies
+```bash
+cd ../server
+npm install
+```
 
-   # In a new terminal, start frontend
-   cd client
-   npm run dev
-   ```
+4. Set up environment variables
+
+Create a `.env` file in the server directory:
+```env
+PORT=3000
+CLIENT_URL=http://localhost:5173
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+5. Start the development servers
+
+Backend:
+```bash
+cd server
+npm run dev
+```
+
+Frontend:
+```bash
+cd client
+npm run dev
+```
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
 
 ## Project Structure
-
 ```
 chatgenius/
-├── client/          # React frontend
-├── server/          # Express backend
-├── .gitignore
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── assets/       # Static assets
+│   │   └── main.jsx      # Entry point
+│   └── package.json
+│
+├── server/                # Backend Node.js application
+│   ├── src/
+│   │   ├── config/       # Configuration files
+│   │   └── index.js      # Entry point
+│   └── package.json
+│
 └── README.md
 ```
 
-## Features
+## Development
 
-- Real-time messaging
-- Channel and direct message support
-- File sharing
-- User presence indicators
-- Thread support
-- Emoji reactions
-- AI-powered communication enhancements
+### Database Schema
+The application uses Supabase with the following main tables:
+- `messages`: Stores all chat messages
+- `channels`: Manages chat channels
+- `channel_members`: Tracks channel membership
+
+### Real-time Features
+Real-time functionality is implemented using Socket.io for instant message delivery and user presence updates.
 
 ## Contributing
-
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
@@ -82,5 +123,4 @@ chatgenius/
 5. Open a Pull Request
 
 ## License
-
 This project is licensed under the MIT License.

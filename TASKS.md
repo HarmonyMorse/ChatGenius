@@ -9,7 +9,8 @@
      > Created Express server with Socket.io integration in the `server` directory. Set up development environment with nodemon and basic API endpoint.
    - [x] Configure Supabase database
      > Switched to Supabase for database. Created tables for messages, channels, and channel members. Set up Supabase client and tested connection successfully.
-   - [ ] Set up basic project documentation
+   - [x] Set up basic project documentation
+     > Created comprehensive README.md with project overview, tech stack, setup instructions, and development guidelines.
 
 2. Authentication Implementation
    - [ ] Configure Clerk authentication
