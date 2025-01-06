@@ -3,9 +3,12 @@
 ## Phase 1: Project Setup and Authentication
 1. Initialize project repository and structure
    - [x] Set up GitHub repository
-   - [ ] Create React frontend with Vite
-   - [ ] Set up Node.js/Express backend
-   - [ ] Configure MongoDB database
+   - [x] Create React frontend with Vite
+     > Created React frontend using Vite with JavaScript template in the `client` directory. Basic dependencies installed.
+   - [x] Set up Node.js/Express backend
+     > Created Express server with Socket.io integration in the `server` directory. Set up development environment with nodemon and basic API endpoint.
+   - [x] Configure Supabase database
+     > Switched to Supabase for database. Created tables for messages, channels, and channel members. Set up Supabase client and tested connection successfully.
    - [ ] Set up basic project documentation
 
 2. Authentication Implementation
@@ -85,4 +88,4 @@
 - [ ] Write deployment guide
 - [ ] Create user manual
 - [ ] Document codebase
-- [ ] Prepare project presentation 
+- [ ] Prepare project presentation
