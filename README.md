@@ -4,12 +4,12 @@ A real-time messaging application with AI-powered features for smarter workplace
 
 ## Tech Stack
 
-- **Frontend**: React with TypeScript, Material-UI
+- **Frontend**: React with JavaScript, TailwindCSS
 - **Backend**: Node.js, Express
 - **Database**: MongoDB
 - **Authentication**: Clerk
 - **Real-time Communication**: Socket.IO
-- **Deployment**: AWS, Vercel
+- **Deployment**: AWS
 - **Version Control**: GitHub
 
 ## Prerequisites
