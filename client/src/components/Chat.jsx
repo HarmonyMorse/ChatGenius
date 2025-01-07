@@ -1,22 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import Header from './Header';
 import PropTypes from 'prop-types';
 import messageService from '../services/messageService';
-
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import realtimeService from '../services/realtimeService';
+import { getUser } from '../services/auth';
 
 const TEMP_CHANNEL_ID = '680dca5c-885f-4e21-930f-3c93ad6dc064';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [typingUsers, setTypingUsers] = useState([]);
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const typingChannelRef = useRef(null);
+    const currentUser = getUser();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,22 +22,26 @@ function Chat({ onLogout }) {
 
     useEffect(() => {
         // Subscribe to realtime messages
-        const channel = supabase
-            .channel('messages')
-            .on('postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `channel_id=eq.${TEMP_CHANNEL_ID}`
-                },
-                (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        setMessages(prev => [...prev, payload.new]);
-                    }
-                }
-            )
-            .subscribe();
+        realtimeService.subscribeToChannel(TEMP_CHANNEL_ID, (event) => {
+            switch (event.type) {
+                case 'new_message':
+                    setMessages(prev => [...prev, event.message]);
+                    break;
+                case 'message_updated':
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === event.message.id ? event.message : msg
+                    ));
+                    break;
+                case 'message_deleted':
+                    setMessages(prev => prev.filter(msg => msg.id !== event.messageId));
+                    break;
+            }
+        });
+
+        // Subscribe to typing indicators
+        typingChannelRef.current = realtimeService.subscribeToTyping(TEMP_CHANNEL_ID, (users) => {
+            setTypingUsers(users.filter(user => user.user_id !== currentUser.id));
+        });
 
         // Load existing messages
         const loadMessages = async () => {
@@ -55,17 +57,20 @@ function Chat({ onLogout }) {
 
         // Clean up
         return () => {
-            supabase.removeChannel(channel);
+            realtimeService.unsubscribeFromChannel(TEMP_CHANNEL_ID);
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
         };
-    }, []);
+    }, [currentUser.id]);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
     const handleTyping = () => {
-        if (!isTyping) {
-            setIsTyping(true);
+        if (typingChannelRef.current) {
+            realtimeService.startTyping(typingChannelRef.current, currentUser);
         }
 
         // Clear existing timeout
@@ -75,7 +80,9 @@ function Chat({ onLogout }) {
 
         // Set new timeout
         typingTimeoutRef.current = setTimeout(() => {
-            setIsTyping(false);
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
         }, 1000);
     };
 
@@ -96,7 +103,9 @@ function Chat({ onLogout }) {
             setNewMessage('');
 
             // Clear typing indicator
-            setIsTyping(false);
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current);
             }
@@ -152,6 +161,11 @@ function Chat({ onLogout }) {
                                 </div>
                             </div>
                         ))}
+                        {typingUsers.length > 0 && (
+                            <div className="text-sm text-gray-500 italic">
+                                {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                            </div>
+                        )}
                         <div ref={messagesEndRef} />
                     </div>
 
