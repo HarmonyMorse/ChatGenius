@@ -8,13 +8,13 @@
    - [x] Set up Node.js/Express backend
      > Created Express server with basic API endpoints. Set up development environment with nodemon.
    - [x] Configure Supabase database
-     > Switched to Supabase for database. Created tables for messages, channels, and channel members. Set up Supabase client and tested connection successfully.
+     > Created tables for users, messages, channels, and channel members. Set up Supabase client and tested connection successfully.
    - [x] Set up basic project documentation
      > Created comprehensive README.md with project overview, tech stack, setup instructions, and development guidelines.
 
 2. Authentication Implementation ✓
    - [x] Configure Passport.js authentication
-     > Installed and configured Passport.js with local strategy, set up JWT token generation, and integrated with Supabase.
+     > Installed and configured Passport.js with JWT strategy, set up token generation, and integrated with Supabase.
    - [x] Create login/registration UI components
      > Created custom SignIn and SignUp components with form validation and error handling.
    - [x] Implement authentication middleware
@@ -29,25 +29,42 @@
 ## Phase 2: Core Messaging Features
 1. Real-time Communication Setup ✓
    - [x] Supabase Realtime infrastructure
+     > Set up Supabase Realtime for message broadcasting
      - [x] Enable Realtime in Supabase dashboard
+       > Created publication for messages table with INSERT, UPDATE, DELETE operations
      - [x] Set up Realtime client subscriptions
+       > Implemented client-side subscription to channel messages
      - [x] Configure message broadcasting
+       > Set up server-side message creation with proper sender information
      - [x] Add real-time event handlers
+       > Added handlers for new messages, updates, and deletions
    - [x] Basic chat functionality
+     > Implemented core messaging features
      - [x] Create basic chat UI
+       > Built message list and input components with proper styling
      - [x] Implement message sending
+       > Added message creation with proper error handling
      - [x] Add real-time message updates
+       > Implemented immediate message updates across clients
      - [x] Add message persistence
+       > Set up message storage in Supabase with proper relations
 
 2. Channel System Implementation
-   - [ ] Basic channel functionality
-     - [ ] Create channel creation form
-     - [ ] Implement channel creation API
-     - [ ] Add channel list component
-     - [ ] Enable channel switching
+   - [x] Basic channel functionality
+     > Implemented core channel features
+     - [x] Create channel creation form
+       > Built modal component with name, description, and privacy settings
+     - [x] Implement channel creation API
+       > Added server routes for channel management with proper authorization
+     - [x] Add channel list component
+       > Created sidebar component showing user's channels
+     - [x] Enable channel switching
+       > Implemented channel selection with URL-based navigation
    - [ ] Channel & DM System
-     - [ ] Create channel data model
+     - [x] Create channel data model
+       > Set up channels table with proper relations to users and messages
      - [ ] Implement channel CRUD operations
+       > Next step: Add update and delete functionality for channels
      - [ ] Build direct messaging functionality
      - [ ] Design channel/DM navigation UI
 

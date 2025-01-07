@@ -33,18 +33,44 @@ function Chat({ onLogout }) {
                         ...event.message,
                         sender: event.message.sender || {
                             id: event.message.sender_id,
-                            username: 'Unknown User'
+                            username: 'Loading...',
+                            avatar_url: null
                         }
                     };
                     setMessages(prev => [...prev, messageWithSender]);
+
+                    // If we don't have complete sender info, fetch it
+                    if (!event.message.sender) {
+                        messageService.getMessageSender(event.message.sender_id)
+                            .then(sender => {
+                                setMessages(prev => prev.map(msg =>
+                                    msg.id === event.message.id ? { ...msg, sender } : msg
+                                ));
+                            });
+                    }
                     break;
                 case 'message_updated':
+                    messageWithSender = {
+                        ...event.message,
+                        sender: event.message.sender || {
+                            id: event.message.sender_id,
+                            username: 'Loading...',
+                            avatar_url: null
+                        }
+                    };
                     setMessages(prev => prev.map(msg =>
-                        msg.id === event.message.id ? {
-                            ...event.message,
-                            sender: event.message.sender || msg.sender
-                        } : msg
+                        msg.id === event.message.id ? messageWithSender : msg
                     ));
+
+                    // If we don't have complete sender info, fetch it
+                    if (!event.message.sender) {
+                        messageService.getMessageSender(event.message.sender_id)
+                            .then(sender => {
+                                setMessages(prev => prev.map(msg =>
+                                    msg.id === event.message.id ? { ...msg, sender } : msg
+                                ));
+                            });
+                    }
                     break;
                 case 'message_deleted':
                     setMessages(prev => prev.filter(msg => msg.id !== event.messageId));

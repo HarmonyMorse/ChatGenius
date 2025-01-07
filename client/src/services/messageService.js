@@ -6,9 +6,23 @@ class MessageService {
         return response.data;
     }
 
-    async getChannelMessages(channelId, limit = 50) {
-        const response = await api.get(`/api/messages/channel/${channelId}?limit=${limit}`);
+    async getChannelMessages(channelId) {
+        const response = await api.get(`/api/messages/channel/${channelId}`);
         return response.data;
+    }
+
+    async getMessageSender(senderId) {
+        try {
+            const response = await api.get(`/api/users/${senderId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching sender:', error);
+            return {
+                id: senderId,
+                username: 'Unknown User',
+                avatar_url: null
+            };
+        }
     }
 }
 

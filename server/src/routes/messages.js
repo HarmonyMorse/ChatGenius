@@ -15,14 +15,26 @@ router.post('/', authenticateJWT, async (req, res) => {
         const sender_id = req.user.id;
 
         // First get the sender information
-        const { data: sender } = await supabase
+        const { data: sender, error: senderError } = await supabase
             .from('users')
             .select('id, username, avatar_url')
             .eq('id', sender_id)
             .single();
 
-        // Create the message
-        const { data: message, error } = await supabase
+        if (senderError) {
+            console.error('Error fetching sender:', senderError);
+            return res.status(500).json({ message: 'Error fetching sender information' });
+        }
+
+        // Create the message with sender information
+        const messageData = {
+            content,
+            sender_id,
+            channel_id,
+            sender: sender // Include sender info directly
+        };
+
+        const { data: message, error: messageError } = await supabase
             .from('messages')
             .insert({
                 content,
@@ -35,8 +47,8 @@ router.post('/', authenticateJWT, async (req, res) => {
             `)
             .single();
 
-        if (error) {
-            console.error('Error saving message:', error);
+        if (messageError) {
+            console.error('Error saving message:', messageError);
             return res.status(500).json({ message: 'Error saving message' });
         }
 
