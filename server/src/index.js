@@ -1,49 +1,66 @@
-const express = require('express');
-const cors = require('cors');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const supabase = require('./config/supabase');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { Server } from 'socket.io';
+import passport from './config/passport.js';
+import authRoutes from './routes/auth.js';
+import { authenticateJWT } from './middleware/auth.js';
+
+dotenv.config();
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(passport.initialize());
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Protected route example
+app.get('/api/protected', authenticateJWT, (req, res) => {
+    res.json({ message: 'Protected route accessed successfully', user: req.user });
+});
+
+// Start server
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+// Socket.io setup
+const io = new Server(server, {
     cors: {
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
         methods: ['GET', 'POST']
     }
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Basic route
-app.get('/', (req, res) => {
-    res.json({ message: 'ChatGenius API is running' });
-});
-
-// Test Supabase connection
-app.get('/api/test', async (req, res) => {
-    try {
-        const { data, error } = await supabase.from('messages').select('*').limit(1);
-        if (error) throw error;
-        res.json({ success: true, data });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+// Socket middleware to authenticate connections
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        return next(new Error('Authentication error'));
     }
+
+    // Verify token using passport-jwt
+    passport.authenticate('jwt', { session: false }, (err, user) => {
+        if (err || !user) {
+            return next(new Error('Authentication error'));
+        }
+        socket.user = user;
+        next();
+    })({ headers: { authorization: `Bearer ${token}` } });
 });
 
-// Socket.io connection handling
+// Socket connection handling
 io.on('connection', (socket) => {
-    console.log('A user connected');
+    console.log('User connected:', socket.user.username);
 
     socket.on('disconnect', () => {
-        console.log('User disconnected');
+        console.log('User disconnected:', socket.user.username);
     });
-});
 
-// Start server
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    // Add your socket event handlers here
 }); 

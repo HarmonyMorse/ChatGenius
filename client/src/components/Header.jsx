@@ -1,27 +1,29 @@
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
-import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
-const Header = ({ isSignIn, onToggle }) => {
+const Header = ({ isSignIn, onToggle, onLogout, onModeToggle }) => {
     return (
         <header className="bg-white shadow-sm p-4">
             <div className="max-w-7xl mx-auto flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">ChatGenius</h1>
                 <div className="flex items-center gap-4">
-                    <SignedOut>
-                        <p className="text-sm text-gray-600">
+                    {onLogout ? (
+                        <button
+                            onClick={onLogout}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                        >
+                            Sign out
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onModeToggle}
+                            className="text-sm text-gray-600"
+                        >
                             {isSignIn ? "Don't have an account?" : "Already have an account?"}{' '}
-                            <Link
-                                to={isSignIn ? "/auth/signup" : "/auth/signin"}
-                                className="font-medium text-blue-600 hover:text-blue-500"
-                            >
+                            <span className="font-medium text-blue-600 hover:text-blue-500">
                                 {isSignIn ? "Sign up" : "Sign in"}
-                            </Link>
-                        </p>
-                    </SignedOut>
-                    <SignedIn>
-                        <UserButton afterSignOutUrl="/auth" />
-                    </SignedIn>
+                            </span>
+                        </button>
+                    )}
                     <button
                         onClick={onToggle}
                         className="text-sm text-gray-600 hover:text-gray-900"
@@ -35,8 +37,10 @@ const Header = ({ isSignIn, onToggle }) => {
 };
 
 Header.propTypes = {
-    isSignIn: PropTypes.bool.isRequired,
+    isSignIn: PropTypes.bool,
     onToggle: PropTypes.func.isRequired,
+    onLogout: PropTypes.func,
+    onModeToggle: PropTypes.func,
 };
 
 export default Header; 

@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, useAuth } from '@clerk/clerk-react';
+import { useState } from 'react';
 import Auth from './pages/Auth';
 import Chat from './components/Chat';
 import './App.css';
 
 function App() {
-  const { isSignedIn } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
     <Router>
@@ -14,22 +14,10 @@ function App() {
         <Route
           path="/auth"
           element={
-            isSignedIn ? (
+            isAuthenticated ? (
               <Navigate to="/" replace />
             ) : (
-              <Navigate to="/auth/signin" replace />
-            )
-          }
-        />
-        <Route
-          path="/auth/*"
-          element={
-            isSignedIn ? (
-              <Navigate to="/" replace />
-            ) : (
-              <SignedOut>
-                <Auth />
-              </SignedOut>
+              <Auth onLogin={() => setIsAuthenticated(true)} />
             )
           }
         />
@@ -38,24 +26,10 @@ function App() {
         <Route
           path="/"
           element={
-            isSignedIn ? (
-              <SignedIn>
-                <Chat />
-              </SignedIn>
+            isAuthenticated ? (
+              <Chat onLogout={() => setIsAuthenticated(false)} />
             ) : (
-              <Navigate to="/auth/signin" replace />
-            )
-          }
-        />
-
-        {/* Redirect all other routes to auth/signin when signed out, home when signed in */}
-        <Route
-          path="*"
-          element={
-            isSignedIn ? (
-              <Navigate to="/" replace />
-            ) : (
-              <Navigate to="/auth/signin" replace />
+              <Navigate to="/auth" replace />
             )
           }
         />

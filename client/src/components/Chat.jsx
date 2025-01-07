@@ -1,9 +1,10 @@
+import PropTypes from 'prop-types';
 import Header from './Header';
 
-const Chat = () => {
+const Chat = ({ onLogout }) => {
     return (
         <div className="min-h-screen bg-white">
-            <Header />
+            <Header onToggle={() => { }} onLogout={onLogout} />
             <div className="flex flex-1 h-[calc(100vh-64px)]">
                 {/* Sidebar */}
                 <div className="w-64 bg-gray-50 border-r">
@@ -48,6 +49,10 @@ const Chat = () => {
             </div>
         </div>
     );
+};
+
+Chat.propTypes = {
+    onLogout: PropTypes.func.isRequired,
 };
 
 export default Chat; 

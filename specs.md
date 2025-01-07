@@ -344,6 +344,128 @@ ChatGenius uses a RESTful API architecture powered by Node.js and Express.js. Re
   - `400 Bad Request` – Validation errors.
   - `401 Unauthorized` – Invalid or missing token.
 
+### **2.7. Database Schema**
+
+The application uses Supabase (PostgreSQL) with the following table structure:
+
+#### **Users**
+| Column        | Type      | Description                  |
+| ------------- | --------- | ---------------------------- |
+| id            | UUID      | Primary key                  |
+| clerk_id      | TEXT      | Unique identifier from Clerk |
+| username      | TEXT      | Unique username              |
+| full_name     | TEXT      | User's full name             |
+| avatar_url    | TEXT      | Profile picture URL          |
+| status        | TEXT      | Online/offline status        |
+| custom_status | TEXT      | Custom status message        |
+| last_seen     | TIMESTAMP | Last activity timestamp      |
+| created_at    | TIMESTAMP | Account creation date        |
+| updated_at    | TIMESTAMP | Last update date             |
+
+#### **Channels**
+| Column      | Type      | Description           |
+| ----------- | --------- | --------------------- |
+| id          | UUID      | Primary key           |
+| name        | TEXT      | Unique channel name   |
+| description | TEXT      | Channel description   |
+| is_private  | BOOLEAN   | Private/public status |
+| created_by  | UUID      | User ID of creator    |
+| created_at  | TIMESTAMP | Creation date         |
+| updated_at  | TIMESTAMP | Last update date      |
+
+#### **Channel Members**
+| Column     | Type      | Description        |
+| ---------- | --------- | ------------------ |
+| channel_id | UUID      | Channel reference  |
+| user_id    | UUID      | User reference     |
+| role       | TEXT      | owner/admin/member |
+| joined_at  | TIMESTAMP | Join date          |
+
+#### **Direct Messages**
+| Column     | Type      | Description   |
+| ---------- | --------- | ------------- |
+| id         | UUID      | Primary key   |
+| created_at | TIMESTAMP | Creation date |
+
+#### **Direct Message Members**
+| Column    | Type      | Description    |
+| --------- | --------- | -------------- |
+| dm_id     | UUID      | DM reference   |
+| user_id   | UUID      | User reference |
+| joined_at | TIMESTAMP | Join date      |
+
+#### **Messages**
+| Column     | Type      | Description                  |
+| ---------- | --------- | ---------------------------- |
+| id         | UUID      | Primary key                  |
+| content    | TEXT      | Message content              |
+| sender_id  | UUID      | User reference               |
+| channel_id | UUID      | Channel reference (optional) |
+| dm_id      | UUID      | DM reference (optional)      |
+| parent_id  | UUID      | Parent message for threads   |
+| is_edited  | BOOLEAN   | Edit status                  |
+| created_at | TIMESTAMP | Creation date                |
+| updated_at | TIMESTAMP | Last edit date               |
+
+#### **Message Reactions**
+| Column     | Type      | Description       |
+| ---------- | --------- | ----------------- |
+| message_id | UUID      | Message reference |
+| user_id    | UUID      | User reference    |
+| emoji      | TEXT      | Emoji code/text   |
+| created_at | TIMESTAMP | Creation date     |
+
+#### **Files**
+| Column      | Type      | Description        |
+| ----------- | --------- | ------------------ |
+| id          | UUID      | Primary key        |
+| name        | TEXT      | File name          |
+| type        | TEXT      | MIME type          |
+| size        | INTEGER   | File size in bytes |
+| url         | TEXT      | Storage URL        |
+| message_id  | UUID      | Message reference  |
+| uploader_id | UUID      | User reference     |
+| created_at  | TIMESTAMP | Upload date        |
+
+#### **User Settings**
+| Column                | Type      | Description           |
+| --------------------- | --------- | --------------------- |
+| user_id               | UUID      | User reference        |
+| theme                 | TEXT      | UI theme preference   |
+| notifications_enabled | BOOLEAN   | Global notifications  |
+| email_notifications   | BOOLEAN   | Email notifications   |
+| desktop_notifications | BOOLEAN   | Desktop notifications |
+| sound_enabled         | BOOLEAN   | Sound notifications   |
+| updated_at            | TIMESTAMP | Last update date      |
+
+#### **Bookmarked Messages**
+| Column     | Type      | Description       |
+| ---------- | --------- | ----------------- |
+| user_id    | UUID      | User reference    |
+| message_id | UUID      | Message reference |
+| created_at | TIMESTAMP | Bookmark date     |
+
+#### **Pinned Messages**
+| Column     | Type      | Description       |
+| ---------- | --------- | ----------------- |
+| message_id | UUID      | Message reference |
+| channel_id | UUID      | Channel reference |
+| pinned_by  | UUID      | User reference    |
+| pinned_at  | TIMESTAMP | Pin date          |
+
+#### **Key Features**
+- Row Level Security on all tables
+- Automatic timestamp updates
+- Cascading deletes for referential integrity
+- Check constraints for data validation
+
+#### **Important Indexes**
+- Messages: channel_id, dm_id, parent_id
+- Channel Members: user_id
+- DM Members: user_id
+- Files: message_id
+- Message Reactions: message_id
+
 ---
 
 ## <a name="api-design"></a>3. API Design
