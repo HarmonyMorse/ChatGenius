@@ -1,11 +1,29 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Auth from './pages/Auth';
 import Chat from './components/Chat';
+import { getUser, getToken } from './services/auth';
 import './App.css';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check for stored user data and token on mount
+    const storedUser = getUser();
+    const token = getToken();
+    if (storedUser && token) {
+      setUser({ ...storedUser, token });
+    }
+  }, []);
+
+  const handleLogin = ({ user, token }) => {
+    setUser({ ...user, token });
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   return (
     <Router>
@@ -14,10 +32,10 @@ function App() {
         <Route
           path="/auth"
           element={
-            isAuthenticated ? (
+            user ? (
               <Navigate to="/" replace />
             ) : (
-              <Auth onLogin={() => setIsAuthenticated(true)} />
+              <Auth onLogin={handleLogin} />
             )
           }
         />
@@ -26,8 +44,12 @@ function App() {
         <Route
           path="/"
           element={
-            isAuthenticated ? (
-              <Chat onLogout={() => setIsAuthenticated(false)} />
+            user ? (
+              <Chat
+                user={user}
+                channelId="general" // TODO: Make this dynamic based on selected channel
+                onLogout={handleLogout}
+              />
             ) : (
               <Navigate to="/auth" replace />
             )
