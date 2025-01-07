@@ -6,7 +6,7 @@
    - [x] Create React frontend with Vite
      > Created React frontend using Vite with JavaScript template in the `client` directory. Basic dependencies installed.
    - [x] Set up Node.js/Express backend
-     > Created Express server with Socket.io integration in the `server` directory. Set up development environment with nodemon and basic API endpoint.
+     > Created Express server with basic API endpoints. Set up development environment with nodemon.
    - [x] Configure Supabase database
      > Switched to Supabase for database. Created tables for messages, channels, and channel members. Set up Supabase client and tested connection successfully.
    - [x] Set up basic project documentation
@@ -28,11 +28,11 @@
 
 ## Phase 2: Core Messaging Features
 1. Real-time Communication Setup
-   - [ ] WebSocket infrastructure
-     - [ ] Set up Socket.io connection
-     - [ ] Implement connection management
+   - [ ] Supabase Realtime infrastructure
+     - [ ] Enable Realtime in Supabase dashboard
+     - [ ] Set up Realtime client subscriptions
+     - [ ] Configure message broadcasting
      - [ ] Add real-time event handlers
-     - [ ] Set up real-time message broadcasting
    - [ ] Basic chat functionality
      - [ ] Create basic chat UI
      - [ ] Implement message sending
@@ -84,7 +84,7 @@
      - [ ] Add custom status updates
      - [ ] Create user profile endpoints
    - [ ] User presence system
-     - [ ] Implement online/offline detection
+     - [ ] Implement online/offline detection using Supabase Presence
      - [ ] Add custom status updates
      - [ ] Create user profile system
      - [ ] Add user search functionality
