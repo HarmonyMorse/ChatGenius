@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 import passport from './config/passport.js';
 import authRoutes from './routes/auth.js';
 import { authenticateJWT } from './middleware/auth.js';
+import MessageService from './services/messageService.js';
 
 dotenv.config();
 
@@ -37,6 +38,9 @@ const io = new Server(server, {
     }
 });
 
+// Initialize message service
+const messageService = new MessageService(io);
+
 // Socket middleware to authenticate connections
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
@@ -58,9 +62,10 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
     console.log('User connected:', socket.user.username);
 
+    // Set up message handlers
+    messageService.setupSocketHandlers(socket);
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.user.username);
     });
-
-    // Add your socket event handlers here
 }); 
