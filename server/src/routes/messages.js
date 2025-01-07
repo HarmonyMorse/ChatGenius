@@ -147,4 +147,48 @@ router.put('/:messageId', authenticateJWT, async (req, res) => {
     }
 });
 
+// Delete a message
+router.delete('/:messageId', authenticateJWT, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const userId = req.user.id;
+
+        // First check if the user is the message sender
+        const { data: message, error: messageError } = await supabase
+            .from('messages')
+            .select('sender_id')
+            .eq('id', messageId)
+            .single();
+
+        if (messageError) {
+            console.error('Error fetching message:', messageError);
+            return res.status(500).json({ message: 'Error fetching message' });
+        }
+
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        if (message.sender_id !== userId) {
+            return res.status(403).json({ message: 'Not authorized to delete this message' });
+        }
+
+        // Delete the message
+        const { error: deleteError } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', messageId);
+
+        if (deleteError) {
+            console.error('Error deleting message:', deleteError);
+            return res.status(500).json({ message: 'Error deleting message' });
+        }
+
+        res.json({ message: 'Message deleted successfully' });
+    } catch (error) {
+        console.error('Error in message deletion:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 export default router;

@@ -22,12 +22,27 @@ class RealtimeService {
             .channel(`messages:${channelId}`)
             .on('postgres_changes',
                 {
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    console.log('Delete event received:', payload);
+                    onMessage({
+                        type: 'message_deleted',
+                        messageId: payload.old.id
+                    });
+                }
+            )
+            .on('postgres_changes',
+                {
                     event: '*',
                     schema: 'public',
                     table: 'messages',
                     filter: `channel_id=eq.${channelId}`
                 },
                 (payload) => {
+                    console.log('Realtime message event:', payload.eventType, payload);
                     switch (payload.eventType) {
                         case 'INSERT':
                             onMessage({
@@ -39,12 +54,6 @@ class RealtimeService {
                             onMessage({
                                 type: 'message_updated',
                                 message: payload.new
-                            });
-                            break;
-                        case 'DELETE':
-                            onMessage({
-                                type: 'message_deleted',
-                                messageId: payload.old.id
                             });
                             break;
                     }

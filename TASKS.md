@@ -72,7 +72,8 @@
    - [ ] Core message functionality
      - [x] Add message editing
        > Implemented message editing with real-time updates, keyboard shortcuts (Enter/Esc), and proper authorization. Added UI indicators for edited messages and edit button for message owners.
-     - [ ] Add message deletion
+     - [x] Add message deletion
+       > Added message deletion with confirmation dialog, proper authorization checks, and real-time updates. Only message owners can delete messages.
      - [x] Create message formatting options
        > Added Markdown support with react-markdown and remark-gfm. Created FormattedMessage component for rendering and FormattingGuide component with live preview. Supports bold, italic, lists, code blocks, quotes, and more.
    - [ ] Advanced message features

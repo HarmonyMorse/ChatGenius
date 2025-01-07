@@ -31,6 +31,7 @@ function Chat({ onLogout }) {
     useEffect(() => {
         // Subscribe to realtime messages
         realtimeService.subscribeToChannel(currentChannelId, (event) => {
+            console.log('Received realtime event:', event);
             let messageWithSender;
             switch (event.type) {
                 case 'new_message':
@@ -66,7 +67,7 @@ function Chat({ onLogout }) {
                         }
                     };
                     setMessages(prev => prev.map(msg =>
-                        msg.id === event.message.id ? messageWithSender : msg
+                        msg.id === event.message.id ? { ...messageWithSender, reactions: msg.reactions } : msg
                     ));
 
                     // If we don't have complete sender info, fetch it
@@ -80,7 +81,14 @@ function Chat({ onLogout }) {
                     }
                     break;
                 case 'message_deleted':
-                    setMessages(prev => prev.filter(msg => msg.id !== event.messageId));
+                    console.log('Handling message deletion:', event.messageId);
+                    setMessages(prev => {
+                        console.log('Current messages:', prev);
+                        // Only remove the message if it exists in our current message list
+                        // This ensures we only remove messages from the current channel
+                        const messageExists = prev.some(msg => msg.id === event.messageId);
+                        return messageExists ? prev.filter(msg => msg.id !== event.messageId) : prev;
+                    });
                     break;
                 case 'reactions_updated':
                     setMessages(prev => prev.map(msg =>
@@ -201,6 +209,19 @@ function Chat({ onLogout }) {
         }
     };
 
+    const handleDeleteMessage = async (messageId) => {
+        if (!window.confirm('Are you sure you want to delete this message?')) {
+            return;
+        }
+
+        try {
+            await messageService.deleteMessage(messageId);
+            setMessages(prev => prev.filter(msg => msg.id !== messageId));
+        } catch (error) {
+            console.error('Error deleting message:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -243,12 +264,20 @@ function Chat({ onLogout }) {
                                             <span className="text-xs text-gray-400">(edited)</span>
                                         )}
                                         {message.sender_id === currentUser.id && (
-                                            <button
-                                                onClick={() => setEditingMessageId(message.id)}
-                                                className="text-gray-400 hover:text-gray-600 text-sm"
-                                            >
-                                                Edit
-                                            </button>
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => setEditingMessageId(message.id)}
+                                                    className="text-gray-400 hover:text-gray-600 text-sm"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteMessage(message.id)}
+                                                    className="text-red-400 hover:text-red-600 text-sm"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                     {editingMessageId === message.id ? (

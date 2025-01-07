@@ -29,6 +29,11 @@ class MessageService {
         const response = await api.put(`/api/messages/${messageId}`, { content });
         return response.data;
     }
+
+    async deleteMessage(messageId) {
+        const response = await api.delete(`/api/messages/${messageId}`);
+        return response.data;
+    }
 }
 
 const messageService = new MessageService();
