@@ -93,4 +93,58 @@ router.get('/channel/:channelId', authenticateJWT, async (req, res) => {
     }
 });
 
+// Edit a message
+router.put('/:messageId', authenticateJWT, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const { content } = req.body;
+        const userId = req.user.id;
+
+        // First check if the user is the message sender
+        const { data: message, error: messageError } = await supabase
+            .from('messages')
+            .select('sender_id')
+            .eq('id', messageId)
+            .single();
+
+        if (messageError) {
+            console.error('Error fetching message:', messageError);
+            return res.status(500).json({ message: 'Error fetching message' });
+        }
+
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        if (message.sender_id !== userId) {
+            return res.status(403).json({ message: 'Not authorized to edit this message' });
+        }
+
+        // Update the message
+        const { data: updatedMessage, error: updateError } = await supabase
+            .from('messages')
+            .update({
+                content,
+                is_edited: true,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', messageId)
+            .select(`
+                *,
+                sender:sender_id(id, username, avatar_url)
+            `)
+            .single();
+
+        if (updateError) {
+            console.error('Error updating message:', updateError);
+            return res.status(500).json({ message: 'Error updating message' });
+        }
+
+        res.json(updatedMessage);
+    } catch (error) {
+        console.error('Error in message update:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 export default router;

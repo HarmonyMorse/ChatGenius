@@ -70,7 +70,8 @@
 
 3. Message Features
    - [ ] Core message functionality
-     - [ ] Add message editing
+     - [x] Add message editing
+       > Implemented message editing with real-time updates, keyboard shortcuts (Enter/Esc), and proper authorization. Added UI indicators for edited messages and edit button for message owners.
      - [ ] Add message deletion
      - [ ] Create message formatting options
    - [ ] Advanced message features

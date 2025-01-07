@@ -8,11 +8,13 @@ import reactionService from '../services/reactionService';
 import { getUser } from '../services/auth';
 import ChannelList from './ChannelList';
 import MessageReactions from './MessageReactions';
+import EditMessageForm from './EditMessageForm';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [typingUsers, setTypingUsers] = useState([]);
+    const [editingMessageId, setEditingMessageId] = useState(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -185,6 +187,18 @@ function Chat({ onLogout }) {
         setSearchParams({ channel: channelId });
     };
 
+    const handleEditMessage = async (messageId, newContent) => {
+        try {
+            const updatedMessage = await messageService.editMessage(messageId, newContent);
+            setMessages(prev => prev.map(msg =>
+                msg.id === messageId ? { ...updatedMessage, reactions: msg.reactions } : msg
+            ));
+            setEditingMessageId(null);
+        } catch (error) {
+            console.error('Error editing message:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -223,8 +237,27 @@ function Chat({ onLogout }) {
                                         <span className="text-xs text-gray-500">
                                             {new Date(message.created_at).toLocaleTimeString()}
                                         </span>
+                                        {message.is_edited && (
+                                            <span className="text-xs text-gray-400">(edited)</span>
+                                        )}
+                                        {message.sender_id === currentUser.id && (
+                                            <button
+                                                onClick={() => setEditingMessageId(message.id)}
+                                                className="text-gray-400 hover:text-gray-600 text-sm"
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
                                     </div>
-                                    <p className="text-gray-800 mt-1">{message.content}</p>
+                                    {editingMessageId === message.id ? (
+                                        <EditMessageForm
+                                            message={message}
+                                            onSave={(content) => handleEditMessage(message.id, content)}
+                                            onCancel={() => setEditingMessageId(null)}
+                                        />
+                                    ) : (
+                                        <p className="text-gray-800 mt-1">{message.content}</p>
+                                    )}
                                     <MessageReactions
                                         reactions={message.reactions}
                                         onReact={handleReaction}

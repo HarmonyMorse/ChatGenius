@@ -24,6 +24,11 @@ class MessageService {
             };
         }
     }
+
+    async editMessage(messageId, content) {
+        const response = await api.put(`/api/messages/${messageId}`, { content });
+        return response.data;
+    }
 }
 
 const messageService = new MessageService();
