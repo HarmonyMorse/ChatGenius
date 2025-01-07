@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import passport from './config/passport.js';
 import authRoutes from './routes/auth.js';
 import messageRoutes from './routes/messages.js';
+import channelRoutes from './routes/channels.js';
 import { authenticateJWT } from './middleware/auth.js';
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/channels', channelRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticateJWT, (req, res) => {

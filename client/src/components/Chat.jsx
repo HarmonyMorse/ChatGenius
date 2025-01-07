@@ -1,20 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from './Header';
 import PropTypes from 'prop-types';
 import messageService from '../services/messageService';
 import realtimeService from '../services/realtimeService';
 import { getUser } from '../services/auth';
-
-const TEMP_CHANNEL_ID = '680dca5c-885f-4e21-930f-3c93ad6dc064';
+import ChannelList from './ChannelList';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [typingUsers, setTypingUsers] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
     const typingChannelRef = useRef(null);
     const currentUser = getUser();
+    const currentChannelId = searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064';
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,7 +24,7 @@ function Chat({ onLogout }) {
 
     useEffect(() => {
         // Subscribe to realtime messages
-        realtimeService.subscribeToChannel(TEMP_CHANNEL_ID, (event) => {
+        realtimeService.subscribeToChannel(currentChannelId, (event) => {
             let messageWithSender;
             switch (event.type) {
                 case 'new_message':
@@ -51,14 +53,14 @@ function Chat({ onLogout }) {
         });
 
         // Subscribe to typing indicators
-        typingChannelRef.current = realtimeService.subscribeToTyping(TEMP_CHANNEL_ID, (users) => {
+        typingChannelRef.current = realtimeService.subscribeToTyping(currentChannelId, (users) => {
             setTypingUsers(users.filter(user => user.user_id !== currentUser.id));
         });
 
         // Load existing messages
         const loadMessages = async () => {
             try {
-                const messages = await messageService.getChannelMessages(TEMP_CHANNEL_ID);
+                const messages = await messageService.getChannelMessages(currentChannelId);
                 setMessages(messages);
             } catch (error) {
                 console.error('Error loading messages:', error);
@@ -69,12 +71,12 @@ function Chat({ onLogout }) {
 
         // Clean up
         return () => {
-            realtimeService.unsubscribeFromChannel(TEMP_CHANNEL_ID);
+            realtimeService.unsubscribeFromChannel(currentChannelId);
             if (typingChannelRef.current) {
                 realtimeService.stopTyping(typingChannelRef.current);
             }
         };
-    }, [currentUser.id]);
+    }, [currentChannelId, currentUser.id]);
 
     useEffect(() => {
         scrollToBottom();
@@ -105,7 +107,7 @@ function Chat({ onLogout }) {
         try {
             const message = {
                 content: newMessage.trim(),
-                channel_id: TEMP_CHANNEL_ID
+                channel_id: currentChannelId
             };
 
             // Send message through API
@@ -126,6 +128,10 @@ function Chat({ onLogout }) {
         }
     };
 
+    const handleChannelSelect = (channelId) => {
+        setSearchParams({ channel: channelId });
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -134,14 +140,10 @@ function Chat({ onLogout }) {
                 <div className="w-64 bg-gray-50 border-r">
                     <div className="p-4">
                         <h2 className="text-lg font-semibold mb-4 text-gray-900">Channels</h2>
-                        <div className="space-y-1">
-                            <button className="w-full text-left px-2 py-1 rounded hover:bg-gray-200 text-gray-700">
-                                # general
-                            </button>
-                            <button className="w-full text-left px-2 py-1 rounded hover:bg-gray-200 text-gray-700">
-                                # random
-                            </button>
-                        </div>
+                        <ChannelList
+                            onChannelSelect={handleChannelSelect}
+                            selectedChannelId={currentChannelId}
+                        />
                     </div>
                 </div>
 
