@@ -14,6 +14,14 @@ router.post('/', authenticateJWT, async (req, res) => {
         const { content, channel_id } = req.body;
         const sender_id = req.user.id;
 
+        // First get the sender information
+        const { data: sender } = await supabase
+            .from('users')
+            .select('id, username, avatar_url')
+            .eq('id', sender_id)
+            .single();
+
+        // Create the message
         const { data: message, error } = await supabase
             .from('messages')
             .insert({
@@ -32,7 +40,13 @@ router.post('/', authenticateJWT, async (req, res) => {
             return res.status(500).json({ message: 'Error saving message' });
         }
 
-        res.status(201).json(message);
+        // Format the response to match the expected structure
+        const formattedMessage = {
+            ...message,
+            sender: sender
+        };
+
+        res.status(201).json(formattedMessage);
     } catch (error) {
         console.error('Error in message creation:', error);
         res.status(500).json({ message: 'Internal server error' });

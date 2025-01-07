@@ -23,13 +23,25 @@ function Chat({ onLogout }) {
     useEffect(() => {
         // Subscribe to realtime messages
         realtimeService.subscribeToChannel(TEMP_CHANNEL_ID, (event) => {
+            let messageWithSender;
             switch (event.type) {
                 case 'new_message':
-                    setMessages(prev => [...prev, event.message]);
+                    // Get the sender information from the message
+                    messageWithSender = {
+                        ...event.message,
+                        sender: event.message.sender || {
+                            id: event.message.sender_id,
+                            username: 'Unknown User'
+                        }
+                    };
+                    setMessages(prev => [...prev, messageWithSender]);
                     break;
                 case 'message_updated':
                     setMessages(prev => prev.map(msg =>
-                        msg.id === event.message.id ? event.message : msg
+                        msg.id === event.message.id ? {
+                            ...event.message,
+                            sender: event.message.sender || msg.sender
+                        } : msg
                     ));
                     break;
                 case 'message_deleted':
