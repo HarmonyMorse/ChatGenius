@@ -9,6 +9,36 @@ class MessageService {
     constructor(io) {
         this.io = io;
         this.setupSocketHandlers = this.setupSocketHandlers.bind(this);
+        this.setupRealtimeSubscription();
+    }
+
+    setupRealtimeSubscription() {
+        const channel = supabase
+            .channel('messages')
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    // Handle message changes
+                    if (payload.eventType === 'INSERT') {
+                        const message = payload.new;
+                        // Broadcast to appropriate channel
+                        if (message.channel_id) {
+                            this.io.to(`channel:${message.channel_id}`).emit('new_message', message);
+                        } else if (message.dm_id) {
+                            this.io.to(`dm:${message.dm_id}`).emit('new_message', message);
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }
 
     async saveMessage(message) {
@@ -21,7 +51,10 @@ class MessageService {
                 dm_id: message.dm_id,
                 parent_id: message.parent_id
             })
-            .select()
+            .select(`
+                *,
+                sender:sender_id(id, username, avatar_url)
+            `)
             .single();
 
         if (error) {
@@ -72,28 +105,8 @@ class MessageService {
                     sender_id: socket.user.id
                 });
 
-                // Emit to all users in the channel
-                if (message.channel_id) {
-                    this.io.to(`channel:${message.channel_id}`).emit('new_message', {
-                        ...savedMessage,
-                        sender: {
-                            id: socket.user.id,
-                            username: socket.user.username,
-                            avatar_url: socket.user.avatar_url
-                        }
-                    });
-                }
-                // Handle DM messages
-                else if (message.dm_id) {
-                    this.io.to(`dm:${message.dm_id}`).emit('new_message', {
-                        ...savedMessage,
-                        sender: {
-                            id: socket.user.id,
-                            username: socket.user.username,
-                            avatar_url: socket.user.avatar_url
-                        }
-                    });
-                }
+                // The message will be broadcasted through Supabase Realtime
+                socket.emit('message_sent', savedMessage);
             } catch (error) {
                 socket.emit('message_error', {
                     message: 'Error sending message',
