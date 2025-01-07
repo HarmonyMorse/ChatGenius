@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import reactionService from './reactionService';
 
 const supabase = createClient(
     import.meta.env.VITE_SUPABASE_URL,
@@ -46,6 +47,29 @@ class RealtimeService {
                                 messageId: payload.old.id
                             });
                             break;
+                    }
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'message_reactions'
+                },
+                async (payload) => {
+                    try {
+                        const messageId = payload.new?.message_id || payload.old?.message_id;
+                        if (messageId) {
+                            // Use the reactionService instead of direct fetch
+                            const reactions = await reactionService.getMessageReactions(messageId);
+                            onMessage({
+                                type: 'reactions_updated',
+                                messageId,
+                                reactions
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching updated reactions:', error);
                     }
                 }
             )

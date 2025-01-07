@@ -78,6 +78,11 @@ function Chat({ onLogout }) {
                 case 'message_deleted':
                     setMessages(prev => prev.filter(msg => msg.id !== event.messageId));
                     break;
+                case 'reactions_updated':
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === event.messageId ? { ...msg, reactions: event.reactions } : msg
+                    ));
+                    break;
             }
         });
 
