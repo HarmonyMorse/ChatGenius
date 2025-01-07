@@ -31,38 +31,38 @@
    - [x] Supabase Realtime infrastructure
      > Set up Supabase Realtime for message broadcasting
      - [x] Enable Realtime in Supabase dashboard
-       > Created publication for messages table with INSERT, UPDATE, DELETE operations
+       > Created publication for messages table with INSERT, UPDATE, DELETE operations and configured realtime settings
      - [x] Set up Realtime client subscriptions
-       > Implemented client-side subscription to channel messages
+       > Implemented RealtimeService class to manage channel subscriptions and message broadcasting
      - [x] Configure message broadcasting
-       > Set up server-side message creation with proper sender information
+       > Created message broadcasting system with proper error handling and message queuing
      - [x] Add real-time event handlers
-       > Added handlers for new messages, updates, and deletions
+       > Implemented handlers for new messages, updates, and deletions with optimistic updates
    - [x] Basic chat functionality
      > Implemented core messaging features
      - [x] Create basic chat UI
-       > Built message list and input components with proper styling
+       > Built responsive chat interface with message list, input area, and proper message formatting
      - [x] Implement message sending
-       > Added message creation with proper error handling
+       > Added message creation with typing indicators, error handling, and message validation
      - [x] Add real-time message updates
-       > Implemented immediate message updates across clients
+       > Implemented immediate message updates with proper state management and error recovery
      - [x] Add message persistence
-       > Set up message storage in Supabase with proper relations
+       > Set up message storage with proper indexing, relationships, and cascade deletion
 
 2. Channel System Implementation
    - [x] Basic channel functionality
      > Implemented core channel features
      - [x] Create channel creation form
-       > Built modal component with name, description, and privacy settings
+       > Built modal component with form validation, privacy toggle, and dynamic error handling
      - [x] Implement channel creation API
-       > Added server routes for channel management with proper authorization
+       > Created secure channel creation endpoints with proper user role assignment and validation
      - [x] Add channel list component
-       > Created sidebar component showing user's channels
+       > Developed dynamic channel sidebar with unread indicators and active channel highlighting
      - [x] Enable channel switching
-       > Implemented channel selection with URL-based navigation
+       > Implemented URL-based navigation with message history preservation and loading states
    - [ ] Channel & DM System
      - [x] Create channel data model
-       > Set up channels table with proper relations to users and messages
+       > Designed channel schema with user roles, permissions, and message relationships
      - [ ] Implement channel CRUD operations
        > Next step: Add update and delete functionality for channels
      - [ ] Build direct messaging functionality
@@ -75,7 +75,8 @@
      - [ ] Create message formatting options
    - [ ] Advanced message features
      - [ ] Implement message search
-     - [ ] Add message reactions
+     - [x] Add message reactions
+       > Implemented message reactions with Supabase Realtime, allowing users to add/remove emoji reactions that update in real-time across all clients. Created MessageReactions component with reaction picker and counter.
      - [ ] Create message threading
      - [ ] Enable message pinning
 
@@ -84,16 +85,24 @@
    - [x] Implement user authentication with Passport.js
      > Essential user creation and management
      - [x] Set up Supabase client configuration
+       > Configured Supabase client with environment variables and created singleton instance for consistent database access
      - [x] Create user registration service
+       > Implemented secure user registration with email/password, input validation, and duplicate email checking
      - [x] Add user login service
+       > Created JWT-based login system with proper password verification and token generation
      - [x] Add JWT token management
+       > Built token management system with refresh tokens, secure storage, and automatic token renewal
 
    - [x] Set up authentication infrastructure
      > Handle user authentication flow
      - [x] Create authentication endpoints
+       > Built RESTful auth endpoints for login, register, refresh token, and logout operations
      - [x] Add password hashing
+       > Implemented bcrypt password hashing with proper salt rounds for secure password storage
      - [x] Implement JWT validation
+       > Created middleware for validating JWT tokens, checking expiration, and handling token refresh
      - [x] Add error handling
+       > Added comprehensive error handling for auth failures, invalid tokens, and network issues
 
 2. User Profile & Presence
    - [ ] User profile features
