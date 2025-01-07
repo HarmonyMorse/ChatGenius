@@ -4,8 +4,10 @@ import Header from './Header';
 import PropTypes from 'prop-types';
 import messageService from '../services/messageService';
 import realtimeService from '../services/realtimeService';
+import reactionService from '../services/reactionService';
 import { getUser } from '../services/auth';
 import ChannelList from './ChannelList';
+import MessageReactions from './MessageReactions';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
@@ -35,7 +37,8 @@ function Chat({ onLogout }) {
                             id: event.message.sender_id,
                             username: 'Loading...',
                             avatar_url: null
-                        }
+                        },
+                        reactions: []
                     };
                     setMessages(prev => [...prev, messageWithSender]);
 
@@ -87,7 +90,14 @@ function Chat({ onLogout }) {
         const loadMessages = async () => {
             try {
                 const messages = await messageService.getChannelMessages(currentChannelId);
-                setMessages(messages);
+                // Load reactions for each message
+                const messagesWithReactions = await Promise.all(
+                    messages.map(async (message) => {
+                        const reactions = await reactionService.getMessageReactions(message.id);
+                        return { ...message, reactions };
+                    })
+                );
+                setMessages(messagesWithReactions);
             } catch (error) {
                 console.error('Error loading messages:', error);
             }
@@ -154,6 +164,18 @@ function Chat({ onLogout }) {
         }
     };
 
+    const handleReaction = async (messageId, emoji) => {
+        try {
+            await reactionService.toggleReaction(messageId, emoji);
+            const reactions = await reactionService.getMessageReactions(messageId);
+            setMessages(prev => prev.map(msg =>
+                msg.id === messageId ? { ...msg, reactions } : msg
+            ));
+        } catch (error) {
+            console.error('Error toggling reaction:', error);
+        }
+    };
+
     const handleChannelSelect = (channelId) => {
         setSearchParams({ channel: channelId });
     };
@@ -188,7 +210,7 @@ function Chat({ onLogout }) {
                                         />
                                     )}
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <div className="flex items-center space-x-2">
                                         <span className="font-semibold text-sm">
                                             {message.sender?.username || 'Unknown User'}
@@ -198,6 +220,11 @@ function Chat({ onLogout }) {
                                         </span>
                                     </div>
                                     <p className="text-gray-800 mt-1">{message.content}</p>
+                                    <MessageReactions
+                                        reactions={message.reactions}
+                                        onReact={handleReaction}
+                                        messageId={message.id}
+                                    />
                                 </div>
                             </div>
                         ))}

@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import messageRoutes from './routes/messages.js';
 import channelRoutes from './routes/channels.js';
 import userRoutes from './routes/users.js';
+import reactionRoutes from './routes/reactions.js';
 import { authenticateJWT } from './middleware/auth.js';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/reactions', reactionRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticateJWT, (req, res) => {
