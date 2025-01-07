@@ -9,6 +9,8 @@ import { getUser } from '../services/auth';
 import ChannelList from './ChannelList';
 import MessageReactions from './MessageReactions';
 import EditMessageForm from './EditMessageForm';
+import FormattedMessage from './FormattedMessage';
+import FormattingGuide from './FormattingGuide';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
@@ -256,7 +258,7 @@ function Chat({ onLogout }) {
                                             onCancel={() => setEditingMessageId(null)}
                                         />
                                     ) : (
-                                        <p className="text-gray-800 mt-1">{message.content}</p>
+                                        <FormattedMessage content={message.content} />
                                     )}
                                     <MessageReactions
                                         reactions={message.reactions}
@@ -276,24 +278,29 @@ function Chat({ onLogout }) {
 
                     {/* Message input */}
                     <form onSubmit={handleSubmit} className="p-4 border-t">
-                        <div className="flex space-x-4">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => {
-                                    setNewMessage(e.target.value);
-                                    handleTyping();
-                                }}
-                                placeholder="Type a message..."
-                                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!newMessage.trim()}
-                                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                            >
-                                Send
-                            </button>
+                        <div className="flex flex-col space-y-2">
+                            <div className="flex space-x-4">
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => {
+                                        setNewMessage(e.target.value);
+                                        handleTyping();
+                                    }}
+                                    placeholder="Type a message... (supports Markdown formatting)"
+                                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!newMessage.trim()}
+                                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                >
+                                    Send
+                                </button>
+                            </div>
+                            <div className="flex justify-end">
+                                <FormattingGuide />
+                            </div>
                         </div>
                     </form>
                 </div>

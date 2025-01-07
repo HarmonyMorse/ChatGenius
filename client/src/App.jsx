@@ -4,7 +4,6 @@ import Auth from './pages/Auth';
 import Chat from './components/Chat';
 import BrowseChannels from './pages/BrowseChannels';
 import { getToken } from './services/auth';
-import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
