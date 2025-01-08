@@ -15,6 +15,7 @@ import FormattingGuide from './FormattingGuide';
 import ThreadView from './ThreadView';
 import ChannelInfoBar from './ChannelInfoBar';
 import { supabase } from '../supabaseClient';
+import UserList from './UserList';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
@@ -364,7 +365,7 @@ function Chat({ onLogout }) {
             <Header onLogout={onLogout} />
             <div className="flex flex-1 h-[calc(100vh-64px)]">
                 {/* Sidebar */}
-                <div className="w-64 bg-gray-50 border-r">
+                <div className="w-64 bg-gray-50 border-r overflow-y-auto">
                     <div className="p-4">
                         <h2 className="text-lg font-semibold mb-4 text-gray-900">Channels</h2>
                         <ChannelList
@@ -375,6 +376,7 @@ function Chat({ onLogout }) {
                             onDMSelect={handleDMSelect}
                             selectedDMId={selectedDMId}
                         />
+                        <UserList />
                     </div>
                 </div>
 

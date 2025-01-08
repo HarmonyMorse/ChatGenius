@@ -2,6 +2,11 @@ import { supabase } from '../supabaseClient';
 import { getUser } from './auth';
 
 class UserService {
+    constructor() {
+        this.autoStatusTimeoutId = null;
+        this.isAutoMode = false;
+    }
+
     async updateStatus(status) {
         const user = getUser();
         if (!user) throw new Error('User not authenticated');
@@ -38,6 +43,47 @@ class UserService {
                 onStatusChange(payload.new.status);
             })
             .subscribe();
+    }
+
+    startAutoStatus(onStatusChange) {
+        this.isAutoMode = true;
+
+        // Set up activity listeners
+        const resetTimer = () => {
+            if (!this.isAutoMode) return;
+
+            clearTimeout(this.autoStatusTimeoutId);
+            onStatusChange('online');
+
+            this.autoStatusTimeoutId = setTimeout(() => {
+                if (this.isAutoMode) {
+                    onStatusChange('away');
+                }
+            }, 5 * 60 * 1000); // 5 minutes
+        };
+
+        // Initial status
+        resetTimer();
+
+        // Add event listeners for user activity
+        const events = ['mousedown', 'keydown', 'mousemove', 'wheel', 'touchstart'];
+        events.forEach(event => {
+            window.addEventListener(event, resetTimer);
+        });
+
+        // Return cleanup function
+        return () => {
+            this.isAutoMode = false;
+            clearTimeout(this.autoStatusTimeoutId);
+            events.forEach(event => {
+                window.removeEventListener(event, resetTimer);
+            });
+        };
+    }
+
+    stopAutoStatus() {
+        this.isAutoMode = false;
+        clearTimeout(this.autoStatusTimeoutId);
     }
 }
 
