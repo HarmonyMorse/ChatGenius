@@ -7,9 +7,22 @@ function Header({ onLogout }) {
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [currentStatus, setCurrentStatus] = useState('offline');
     const [customStatus, setCustomStatus] = useState('');
+    const [customStatusColor, setCustomStatusColor] = useState('#9333ea'); // Default purple
     const [isEditingCustomStatus, setIsEditingCustomStatus] = useState(false);
+    const [showColorPicker, setShowColorPicker] = useState(false);
+    const [hexInputValue, setHexInputValue] = useState('#9333ea');
     const customStatusInputRef = useRef(null);
     const currentUser = getUser();
+
+    const statusColors = [
+        { name: 'green', hex: '#22c55e' },
+        { name: 'yellow', hex: '#eab308' },
+        { name: 'red', hex: '#ef4444' },
+        { name: 'blue', hex: '#3b82f6' },
+        { name: 'purple', hex: '#9333ea' },
+        { name: 'pink', hex: '#ec4899' },
+        { name: 'white', hex: '#ffffff' },
+    ];
 
     useEffect(() => {
         const loadUserStatus = async () => {
@@ -17,7 +30,9 @@ function Header({ onLogout }) {
                 const userData = await userService.getUserStatus(currentUser.id);
                 setCurrentStatus(userData.status);
                 if (!['online', 'away', 'busy', 'offline'].includes(userData.status)) {
-                    setCustomStatus(userData.status);
+                    const [text, color] = userData.status.split('|');
+                    setCustomStatus(text);
+                    setCustomStatusColor(color || '#9333ea');
                 }
             } catch (error) {
                 console.error('Error loading user status:', error);
@@ -27,13 +42,15 @@ function Header({ onLogout }) {
         loadUserStatus();
     }, [currentUser.id]);
 
-    const handleStatusChange = async (status) => {
+    const handleStatusChange = async (status, color = null) => {
         try {
-            await userService.updateStatus(status);
-            setCurrentStatus(status);
+            const statusToSave = color ? `${status}|${color}` : status;
+            await userService.updateStatus(statusToSave);
+            setCurrentStatus(statusToSave);
             setShowStatusMenu(false);
             if (!['online', 'away', 'busy', 'offline'].includes(status)) {
                 setCustomStatus(status);
+                if (color) setCustomStatusColor(color);
             }
         } catch (error) {
             console.error('Error updating status:', error);
@@ -43,12 +60,18 @@ function Header({ onLogout }) {
     const handleCustomStatusSubmit = async (e) => {
         e.preventDefault();
         if (customStatus.trim()) {
-            await handleStatusChange(customStatus.trim());
+            await handleStatusChange(customStatus.trim(), customStatusColor);
             setIsEditingCustomStatus(false);
+            setShowColorPicker(false);
         }
     };
 
     const getStatusColor = (status) => {
+        if (status.includes('|')) {
+            const [, color] = status.split('|');
+            return `bg-[${color}]`;
+        }
+
         switch (status) {
             case 'online':
                 return 'bg-green-500';
@@ -56,12 +79,19 @@ function Header({ onLogout }) {
                 return 'bg-yellow-500';
             case 'busy':
                 return 'bg-red-500';
+            case 'offline':
+                return 'bg-gray-500';
             default:
                 return 'bg-purple-500';
         }
     };
 
     const getStatusDisplay = (status) => {
+        if (status.includes('|')) {
+            const [text] = status.split('|');
+            return text;
+        }
+
         switch (status) {
             case 'online':
                 return 'Online';
@@ -75,6 +105,30 @@ function Header({ onLogout }) {
                 return status;
         }
     };
+
+    const handleColorChange = (e) => {
+        const value = e.target.value;
+        setHexInputValue(value);
+
+        // Only update the actual color if it's a valid hex
+        if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value)) {
+            setCustomStatusColor(value);
+        }
+    };
+
+    const handleHexKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hexInputValue)) {
+                setCustomStatusColor(hexInputValue);
+            }
+        }
+    };
+
+    // Update hexInputValue when customStatusColor changes
+    useEffect(() => {
+        setHexInputValue(customStatusColor);
+    }, [customStatusColor]);
 
     useEffect(() => {
         if (isEditingCustomStatus && customStatusInputRef.current) {
@@ -158,10 +212,49 @@ function Header({ onLogout }) {
                                                     className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:border-blue-500"
                                                     maxLength={50}
                                                 />
+                                                <div className="mt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowColorPicker(!showColorPicker)}
+                                                        className="flex items-center text-sm text-gray-600 hover:text-gray-800"
+                                                    >
+                                                        <div className={`w-4 h-4 rounded-full mr-2`} style={{ backgroundColor: customStatusColor }} />
+                                                        Choose color
+                                                    </button>
+                                                    {showColorPicker && (
+                                                        <div className="mt-2">
+                                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                                {statusColors.map(color => (
+                                                                    <button
+                                                                        key={color.hex}
+                                                                        type="button"
+                                                                        onClick={() => setCustomStatusColor(color.hex)}
+                                                                        className={`w-6 h-6 rounded-full border-2 ${customStatusColor === color.hex ? 'border-blue-500' : 'border-gray-200'}`}
+                                                                        style={{ backgroundColor: color.hex }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex items-center mt-2">
+                                                                <span className="text-xs text-gray-500 mr-2">Custom:</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={hexInputValue}
+                                                                    onChange={handleColorChange}
+                                                                    onKeyDown={handleHexKeyDown}
+                                                                    placeholder="#HEX"
+                                                                    className="px-2 py-1 text-xs border rounded w-20 focus:outline-none focus:border-blue-500"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div className="flex justify-end mt-2 space-x-2">
                                                     <button
                                                         type="button"
-                                                        onClick={() => setIsEditingCustomStatus(false)}
+                                                        onClick={() => {
+                                                            setIsEditingCustomStatus(false);
+                                                            setShowColorPicker(false);
+                                                        }}
                                                         className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800"
                                                     >
                                                         Cancel
@@ -179,7 +272,7 @@ function Header({ onLogout }) {
                                                 onClick={() => setIsEditingCustomStatus(true)}
                                                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             >
-                                                <div className="w-2 h-2 rounded-full bg-purple-500 mr-2" />
+                                                <div className={`w-2 h-2 rounded-full mr-2`} style={{ backgroundColor: customStatusColor }} />
                                                 {customStatus || "Set a custom status"}
                                             </button>
                                         )}
