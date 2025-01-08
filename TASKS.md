@@ -115,14 +115,17 @@
        > Added comprehensive error handling for auth failures, invalid tokens, and network issues
 
 2. User Profile & Presence
-   - [ ] User profile features
-     - [ ] Add user status management
+   - [x] User profile features
+     - [x] Add user status management
+       > Implemented user status system with preset and custom statuses, color picker, and real-time updates
      - [ ] Implement last seen tracking
-     - [ ] Add custom status updates
+     - [x] Add custom status updates
+       > Added ability to set custom status messages with color selection and HEX input
      - [ ] Create user profile endpoints
    - [ ] User presence system
      - [ ] Implement online/offline detection using Supabase Presence
-     - [ ] Add custom status updates
+     - [x] Add custom status updates
+       > Added status color customization with preset colors and HEX input
      - [ ] Create user profile system
      - [ ] Add user search functionality
 
