@@ -45,7 +45,16 @@ router.post('/', authenticateJWT, async (req, res) => {
             return res.status(500).json({ message: 'Error fetching sender information' });
         }
 
-        // Create the message
+        // Create the message with sender information included
+        const messageData = {
+            content,
+            sender_id,
+            channel_id,
+            dm_id,
+            parent_id,
+            sender: sender  // Include sender info in the insert
+        };
+
         const { data: message, error: messageError } = await supabase
             .from('messages')
             .insert({
@@ -69,7 +78,7 @@ router.post('/', authenticateJWT, async (req, res) => {
         // Format the response to match the expected structure
         const formattedMessage = {
             ...message,
-            sender: sender
+            sender: sender  // Ensure sender info is included
         };
 
         res.status(201).json(formattedMessage);
@@ -367,6 +376,7 @@ router.get('/dm/:dmId', authenticateJWT, async (req, res) => {
                 sender:sender_id(id, username, avatar_url)
             `)
             .eq('dm_id', dmId)
+            .is('parent_id', null)  // Only get top-level messages, not replies
             .order('created_at', { ascending: true });
 
         if (messagesError) {

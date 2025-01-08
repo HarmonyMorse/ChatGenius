@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { supabase } from '../supabaseClient';
 import { getUser } from '../services/auth';
+import messageService from '../services/messageService';
 
 function DirectMessageList({ onDMSelect, selectedDMId }) {
     const [directMessages, setDirectMessages] = useState([]);
@@ -102,7 +103,7 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
         if (selectedUsers.length === 0) return;
 
         try {
-            // Create new DM
+            // Create the DM
             const { data: dm, error: dmError } = await supabase
                 .from('direct_messages')
                 .insert({})
@@ -114,7 +115,7 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 return;
             }
 
-            // Add all participants (including current user)
+            // Add all members to the DM
             const members = [currentUser, ...selectedUsers].map(user => ({
                 dm_id: dm.id,
                 user_id: user.id
@@ -129,7 +130,15 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 return;
             }
 
-            // Reset state and reload DMs
+            // Send system message about DM creation
+            const systemMessage = {
+                content: 'A Direct Message has been created',
+                dm_id: dm.id,
+                is_system_message: true
+            };
+
+            await messageService.sendMessage(systemMessage);
+
             setShowCreateDM(false);
             setSelectedUsers([]);
             loadDirectMessages();

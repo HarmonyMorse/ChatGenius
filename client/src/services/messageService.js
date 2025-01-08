@@ -12,8 +12,13 @@ class MessageService {
     }
 
     async getDMMessages(dmId) {
-        const response = await api.get(`/api/messages/dm/${dmId}`);
-        return response.data;
+        try {
+            const response = await api.get(`/api/messages/dm/${dmId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching DM messages:', error);
+            return [];
+        }
     }
 
     async getMessageSender(senderId) {

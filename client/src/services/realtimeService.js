@@ -41,19 +41,33 @@ class RealtimeService {
                     table: 'messages',
                     filter: `channel_id=eq.${channelId}`
                 },
-                (payload) => {
+                async (payload) => {
                     console.log('Channel message event:', payload.eventType, payload);
+                    // Get sender information if not included
+                    let messageWithSender = payload.new;
+                    if (!messageWithSender.sender) {
+                        try {
+                            const { data: sender } = await supabase
+                                .from('users')
+                                .select('id, username, avatar_url')
+                                .eq('id', messageWithSender.sender_id)
+                                .single();
+                            messageWithSender = { ...messageWithSender, sender };
+                        } catch (error) {
+                            console.error('Error fetching sender:', error);
+                        }
+                    }
                     switch (payload.eventType) {
                         case 'INSERT':
                             onMessage({
                                 type: 'new_message',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                         case 'UPDATE':
                             onMessage({
                                 type: 'message_updated',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                     }
@@ -66,19 +80,33 @@ class RealtimeService {
                     table: 'messages',
                     filter: `dm_id=eq.${channelId}`
                 },
-                (payload) => {
+                async (payload) => {
                     console.log('DM message event:', payload.eventType, payload);
+                    // Get sender information if not included
+                    let messageWithSender = payload.new;
+                    if (!messageWithSender.sender) {
+                        try {
+                            const { data: sender } = await supabase
+                                .from('users')
+                                .select('id, username, avatar_url')
+                                .eq('id', messageWithSender.sender_id)
+                                .single();
+                            messageWithSender = { ...messageWithSender, sender };
+                        } catch (error) {
+                            console.error('Error fetching sender:', error);
+                        }
+                    }
                     switch (payload.eventType) {
                         case 'INSERT':
                             onMessage({
                                 type: 'new_message',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                         case 'UPDATE':
                             onMessage({
                                 type: 'message_updated',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                     }

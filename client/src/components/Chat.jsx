@@ -51,11 +51,7 @@ function Chat({ onLogout }) {
                     // Get the sender information from the message
                     messageWithSender = {
                         ...event.message,
-                        sender: event.message.sender || {
-                            id: event.message.sender_id,
-                            username: 'Loading...',
-                            avatar_url: null
-                        },
+                        sender: event.message.sender,
                         reactions: []
                     };
                     setMessages(prev => [...prev, messageWithSender]);
@@ -67,39 +63,15 @@ function Chat({ onLogout }) {
                             [event.message.parent_id]: (prev[event.message.parent_id] || 0) + 1
                         }));
                     }
-
-                    // If we don't have complete sender info, fetch it
-                    if (!event.message.sender) {
-                        messageService.getMessageSender(event.message.sender_id)
-                            .then(sender => {
-                                setMessages(prev => prev.map(msg =>
-                                    msg.id === event.message.id ? { ...msg, sender } : msg
-                                ));
-                            });
-                    }
                     break;
                 case 'message_updated':
                     messageWithSender = {
                         ...event.message,
-                        sender: event.message.sender || {
-                            id: event.message.sender_id,
-                            username: 'Loading...',
-                            avatar_url: null
-                        }
+                        sender: event.message.sender
                     };
                     setMessages(prev => prev.map(msg =>
                         msg.id === event.message.id ? { ...messageWithSender, reactions: msg.reactions } : msg
                     ));
-
-                    // If we don't have complete sender info, fetch it
-                    if (!event.message.sender) {
-                        messageService.getMessageSender(event.message.sender_id)
-                            .then(sender => {
-                                setMessages(prev => prev.map(msg =>
-                                    msg.id === event.message.id ? { ...msg, sender } : msg
-                                ));
-                            });
-                    }
                     break;
                 case 'message_deleted':
                     console.log('Handling message deletion:', event.messageId);
