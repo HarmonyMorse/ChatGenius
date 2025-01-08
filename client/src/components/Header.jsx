@@ -69,41 +69,43 @@ function Header({ onLogout }) {
     const getStatusColor = (status) => {
         if (status.includes('|')) {
             const [, color] = status.split('|');
-            return `bg-[${color}]`;
+            return { backgroundColor: color };
         }
 
-        switch (status) {
-            case 'online':
-                return 'bg-green-500';
-            case 'away':
-                return 'bg-yellow-500';
-            case 'busy':
-                return 'bg-red-500';
-            case 'offline':
-                return 'bg-gray-500';
-            default:
-                return 'bg-purple-500';
-        }
+        const colors = {
+            online: '#22c55e',
+            away: '#eab308',
+            busy: '#ef4444',
+            offline: '#6b7280'
+        };
+
+        return { backgroundColor: colors[status] || '#9333ea' };
     };
 
     const getStatusDisplay = (status) => {
+        let text;
         if (status.includes('|')) {
-            const [text] = status.split('|');
-            return text;
+            [text] = status.split('|');
+        } else {
+            switch (status) {
+                case 'online':
+                    text = 'Online';
+                    break;
+                case 'away':
+                    text = 'Away';
+                    break;
+                case 'busy':
+                    text = 'Do Not Disturb';
+                    break;
+                case 'offline':
+                    text = 'Offline';
+                    break;
+                default:
+                    text = status;
+            }
         }
 
-        switch (status) {
-            case 'online':
-                return 'Online';
-            case 'away':
-                return 'Away';
-            case 'busy':
-                return 'Do Not Disturb';
-            case 'offline':
-                return 'Offline';
-            default:
-                return status;
-        }
+        return text.length > 10 ? `${text.substring(0, 10)}...` : text;
     };
 
     const handleColorChange = (e) => {
@@ -161,11 +163,16 @@ function Header({ onLogout }) {
                                             />
                                         )}
                                     </div>
-                                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(currentStatus)}`} />
+                                    <div
+                                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white`}
+                                        style={getStatusColor(currentStatus)}
+                                    />
                                 </div>
                                 <div className="flex flex-col items-start">
                                     <span className="text-gray-700">{currentUser?.username}</span>
-                                    <span className="text-sm text-gray-500">{getStatusDisplay(currentStatus)}</span>
+                                    <span className="text-sm text-gray-500 max-w-[150px] truncate" title={getStatusDisplay(currentStatus)}>
+                                        {getStatusDisplay(currentStatus)}
+                                    </span>
                                 </div>
                             </button>
 
@@ -176,28 +183,28 @@ function Header({ onLogout }) {
                                             onClick={() => handleStatusChange('online')}
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }} />
                                             Online
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('away')}
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2" />
+                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#eab308' }} />
                                             Away
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('busy')}
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
+                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#ef4444' }} />
                                             Do Not Disturb
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('offline')}
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full bg-gray-500 mr-2" />
+                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#6b7280' }} />
                                             Offline
                                         </button>
                                         <div className="border-t border-gray-100 my-1" />
