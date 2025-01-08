@@ -1,14 +1,169 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import searchService from '../services/searchService';
+import { formatDistanceToNow } from 'date-fns';
 
 function SearchModal({ isOpen, onClose }) {
     const [searchType, setSearchType] = useState('messages');
     const [searchQuery, setSearchQuery] = useState('');
+    const [results, setResults] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (searchQuery.trim().length >= 2) {
+            performSearch();
+        } else {
+            setResults([]);
+        }
+    }, [searchQuery, searchType]);
+
+    const performSearch = async () => {
+        setIsLoading(true);
+        try {
+            let searchResults;
+            switch (searchType) {
+                case 'messages':
+                    searchResults = await searchService.searchMessages(searchQuery);
+                    break;
+                case 'channels':
+                    searchResults = await searchService.searchChannels(searchQuery);
+                    break;
+                case 'users':
+                    searchResults = await searchService.searchUsers(searchQuery);
+                    break;
+                default:
+                    searchResults = [];
+            }
+            setResults(searchResults);
+        } catch (error) {
+            console.error('Search error:', error);
+            setResults([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        // TODO: Implement search functionality
-        console.log('Searching for:', searchQuery, 'in:', searchType);
+        if (searchQuery.trim().length >= 2) {
+            performSearch();
+        }
+    };
+
+    const renderResults = () => {
+        if (isLoading) {
+            return (
+                <div className="text-gray-500 text-center py-8">
+                    Searching...
+                </div>
+            );
+        }
+
+        if (searchQuery.trim().length < 2) {
+            return (
+                <div className="text-gray-500 text-center py-8">
+                    Enter at least 2 characters to search
+                </div>
+            );
+        }
+
+        if (results.length === 0) {
+            return (
+                <div className="text-gray-500 text-center py-8">
+                    No results found
+                </div>
+            );
+        }
+
+        switch (searchType) {
+            case 'messages':
+                return (
+                    <div className="space-y-4">
+                        {results.map((message) => (
+                            <div key={message.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                                <div className="flex items-start space-x-3">
+                                    <img
+                                        src={message.sender?.avatar_url || '/default-avatar.png'}
+                                        alt={message.sender?.username}
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center space-x-2">
+                                            <span className="font-medium text-gray-900">
+                                                {message.sender?.username || 'Unknown User'}
+                                            </span>
+                                            <span className="text-sm text-gray-500">
+                                                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                                            </span>
+                                            {message.channel && (
+                                                <span className="text-sm text-gray-500">
+                                                    in #{message.channel.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-gray-800 mt-1">{message.content}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+
+            case 'channels':
+                return (
+                    <div className="space-y-2">
+                        {results.map((channel) => (
+                            <div key={channel.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-gray-400 text-xl">#</span>
+                                    <div className="flex-1">
+                                        <h3 className="font-medium text-gray-900">{channel.name}</h3>
+                                        {channel.description && (
+                                            <p className="text-sm text-gray-500">{channel.description}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+
+            case 'users':
+                return (
+                    <div className="space-y-2">
+                        {results.map((user) => (
+                            <div key={user.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                    <img
+                                        src={user.avatar_url || '/default-avatar.png'}
+                                        alt={user.username}
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                    <div className="flex-1">
+                                        <h3 className="font-medium text-gray-900">{user.username}</h3>
+                                        <div className="flex items-center space-x-2">
+                                            <div
+                                                className="w-2 h-2 rounded-full"
+                                                style={{
+                                                    backgroundColor: user.status === 'online' ? '#22c55e' :
+                                                        user.status === 'away' ? '#eab308' :
+                                                            user.status === 'busy' ? '#ef4444' : '#6b7280'
+                                                }}
+                                            />
+                                            <span className="text-sm text-gray-500 capitalize">
+                                                {user.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+
+            default:
+                return null;
+        }
     };
 
     if (!isOpen) return null;
@@ -77,10 +232,7 @@ function SearchModal({ isOpen, onClose }) {
 
                     {/* Results Area */}
                     <div className="max-h-96 overflow-y-auto">
-                        {/* TODO: Add search results here */}
-                        <div className="text-gray-500 text-center py-8">
-                            Enter a search term to begin
-                        </div>
+                        {renderResults()}
                     </div>
 
                     {/* Close Button */}
