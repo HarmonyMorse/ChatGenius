@@ -144,6 +144,12 @@ function Header({ onLogout }) {
         return text.length > 10 ? `${text.substring(0, 10)}...` : text;
     };
 
+    const isCurrentStatus = (status) => {
+        if (isAutoMode) return status === 'auto';
+        if (currentStatus.includes('|')) return false;
+        return currentStatus === status;
+    };
+
     const handleColorChange = (e) => {
         const value = e.target.value;
         setHexInputValue(value);
@@ -217,41 +223,53 @@ function Header({ onLogout }) {
                                     <div className="py-1" role="menu">
                                         <button
                                             onClick={() => handleStatusChange('auto')}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full mr-2 bg-gradient-to-r from-green-500 to-yellow-500" />
-                                            Auto (Online/Away)
-                                            {isAutoMode && (
-                                                <span className="ml-2 text-xs text-green-600">✓</span>
-                                            )}
+                                            <div className="flex items-center">
+                                                <div className="w-2 h-2 rounded-full mr-2 bg-gradient-to-r from-green-500 to-yellow-500" />
+                                                Auto (Online/Away)
+                                            </div>
+                                            {isAutoMode && <span className="text-green-600">✓</span>}
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('online')}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }} />
-                                            Online
+                                            <div className="flex items-center">
+                                                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }} />
+                                                Online
+                                            </div>
+                                            {isCurrentStatus('online') && <span className="text-green-600">✓</span>}
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('away')}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#eab308' }} />
-                                            Away
+                                            <div className="flex items-center">
+                                                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#eab308' }} />
+                                                Away
+                                            </div>
+                                            {isCurrentStatus('away') && <span className="text-green-600">✓</span>}
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('busy')}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#ef4444' }} />
-                                            Do Not Disturb
+                                            <div className="flex items-center">
+                                                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#ef4444' }} />
+                                                Do Not Disturb
+                                            </div>
+                                            {isCurrentStatus('busy') && <span className="text-green-600">✓</span>}
                                         </button>
                                         <button
                                             onClick={() => handleStatusChange('offline')}
-                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#6b7280' }} />
-                                            Offline
+                                            <div className="flex items-center">
+                                                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#6b7280' }} />
+                                                Offline
+                                            </div>
+                                            {isCurrentStatus('offline') && <span className="text-green-600">✓</span>}
                                         </button>
                                         <div className="border-t border-gray-100 my-1" />
                                         {isEditingCustomStatus ? (
