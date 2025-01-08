@@ -17,20 +17,9 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
     const loadDirectMessages = async () => {
         try {
             // Get all DMs where the current user is a member
-            const { data: dmMembers, error: dmError } = await supabase
+            const { data: myDMs, error: dmError } = await supabase
                 .from('direct_message_members')
-                .select(`
-                    dm_id,
-                    direct_message:dm_id(
-                        id,
-                        created_at
-                    ),
-                    user:user_id(
-                        id,
-                        username,
-                        avatar_url
-                    )
-                `)
+                .select('dm_id')
                 .eq('user_id', currentUser.id);
 
             if (dmError) {
@@ -38,24 +27,38 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 return;
             }
 
-            // Group DM members by DM ID to get all participants for each DM
+            // Get all participants for these DMs
+            const dmIds = myDMs.map(dm => dm.dm_id);
+            const { data: allMembers, error: membersError } = await supabase
+                .from('direct_message_members')
+                .select(`
+                    dm_id,
+                    user:user_id (
+                        id,
+                        username,
+                        avatar_url
+                    )
+                `)
+                .in('dm_id', dmIds);
+
+            if (membersError) {
+                console.error('Error loading DM members:', membersError);
+                return;
+            }
+
+            // Group members by DM
             const dmsMap = new Map();
-            for (const member of dmMembers) {
+            allMembers.forEach(member => {
                 if (!dmsMap.has(member.dm_id)) {
                     dmsMap.set(member.dm_id, {
                         id: member.dm_id,
-                        created_at: member.direct_message.created_at,
                         participants: []
                     });
                 }
                 dmsMap.get(member.dm_id).participants.push(member.user);
-            }
+            });
 
-            // Convert map to array and sort by most recent
-            const dms = Array.from(dmsMap.values())
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-            setDirectMessages(dms);
+            setDirectMessages(Array.from(dmsMap.values()));
         } catch (error) {
             console.error('Error in DM loading:', error);
         }
@@ -142,41 +145,59 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
             .map(p => p.username)
             .sort((a, b) => a.localeCompare(b));
 
-        if (otherParticipants.length <= 2) {
-            return otherParticipants.join(', ');
+        const joinedNames = otherParticipants.join(', ');
+        if (joinedNames.length <= 20) {
+            return joinedNames;
         }
 
-        return `${otherParticipants[0]}, ${otherParticipants[1]}...`;
+        // Find the last complete name that fits within 20 characters
+        let truncatedText = '';
+        let nameCount = 0;
+        for (const name of otherParticipants) {
+            if ((truncatedText + name + ', ').length > 17) { // 17 to leave room for "..."
+                break;
+            }
+            truncatedText += (nameCount > 0 ? ', ' : '') + name;
+            nameCount++;
+        }
+
+        return truncatedText + '...';
     };
 
     return (
         <div className="mt-6">
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2 px-2">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                     Direct Messages
                 </h3>
                 <button
                     onClick={handleCreateDMClick}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center"
                 >
                     +
                 </button>
             </div>
 
             {/* DM List */}
-            <div className="space-y-1">
+            <div className="space-y-1 min-h-[50px]">
                 {directMessages.map((dm) => (
                     <button
                         key={dm.id}
                         onClick={() => onDMSelect(dm.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-sm ${selectedDMId === dm.id
+                        className={`w-full text-left px-4 py-2 rounded-md text-sm flex items-center ${selectedDMId === dm.id
                             ? 'bg-blue-100 text-blue-900'
                             : 'text-gray-700 hover:bg-gray-100'
                             }`}
                     >
+                        <span className="mr-2">🗨️</span>
                         {getDMName(dm)}
                     </button>
                 ))}
+                {directMessages.length === 0 && (
+                    <div className="text-sm text-gray-500 italic px-4 py-2">
+                        No direct messages yet
+                    </div>
+                )}
             </div>
 
             {/* Create DM Modal */}
