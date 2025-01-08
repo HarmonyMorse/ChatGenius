@@ -13,6 +13,29 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
 
     useEffect(() => {
         loadDirectMessages();
+
+        // Subscribe to changes in direct_message_members table
+        const channel = supabase
+            .channel('direct-messages-changes')
+            .on('postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'direct_message_members',
+                    filter: `user_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    console.log('New DM member event:', payload);
+                    loadDirectMessages();
+                }
+            )
+            .subscribe((status) => {
+                console.log('Direct messages subscription status:', status);
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const loadDirectMessages = async () => {
