@@ -42,7 +42,8 @@ function Chat({ onLogout }) {
 
     useEffect(() => {
         // Subscribe to realtime messages
-        realtimeService.subscribeToChannel(currentChannelId, (event) => {
+        const channelOrDM = selectedDMId || currentChannelId;
+        realtimeService.subscribeToChannel(channelOrDM, (event) => {
             console.log('Received realtime event:', event);
             let messageWithSender;
             switch (event.type) {
@@ -127,14 +128,19 @@ function Chat({ onLogout }) {
         });
 
         // Subscribe to typing indicators
-        typingChannelRef.current = realtimeService.subscribeToTyping(currentChannelId, (users) => {
+        typingChannelRef.current = realtimeService.subscribeToTyping(channelOrDM, (users) => {
             setTypingUsers(users.filter(user => user.user_id !== currentUser.id));
         });
 
         // Load existing messages
         const loadMessages = async () => {
             try {
-                const messages = await messageService.getChannelMessages(currentChannelId);
+                let messages;
+                if (selectedDMId) {
+                    messages = await messageService.getDMMessages(selectedDMId);
+                } else {
+                    messages = await messageService.getChannelMessages(currentChannelId);
+                }
                 // Load reactions for each message
                 const messagesWithReactions = await Promise.all(
                     messages.map(async (message) => {
@@ -168,12 +174,12 @@ function Chat({ onLogout }) {
 
         // Clean up
         return () => {
-            realtimeService.unsubscribeFromChannel(currentChannelId);
+            realtimeService.unsubscribeFromChannel(channelOrDM);
             if (typingChannelRef.current) {
                 realtimeService.stopTyping(typingChannelRef.current);
             }
         };
-    }, [currentChannelId, currentUser.id]);
+    }, [currentChannelId, selectedDMId, currentUser.id]);
 
     useEffect(() => {
         scrollToBottom();
@@ -204,8 +210,8 @@ function Chat({ onLogout }) {
         try {
             const message = {
                 content: newMessage.trim(),
-                channel_id: currentChannelId,
-                dm_id: selectedDMId
+                channel_id: selectedDMId ? null : currentChannelId,
+                dm_id: selectedDMId || null
             };
 
             // Send message through API
@@ -241,6 +247,7 @@ function Chat({ onLogout }) {
     const handleChannelSelect = (channelId) => {
         setSelectedDMId(null);  // Clear selected DM
         setSearchParams({ channel: channelId });
+        setMessages([]); // Clear messages when switching
     };
 
     const handleEditMessage = async (messageId, newContent) => {
@@ -377,6 +384,7 @@ function Chat({ onLogout }) {
     const handleDMSelect = (dmId) => {
         setSelectedDMId(dmId);
         setSearchParams({});  // Clear channel from URL
+        setMessages([]); // Clear messages when switching
     };
 
     return (

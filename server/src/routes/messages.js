@@ -11,8 +11,27 @@ const supabase = createClient(
 // Create a new message
 router.post('/', authenticateJWT, async (req, res) => {
     try {
-        const { content, channel_id, parent_id } = req.body;
+        const { content, channel_id, dm_id, parent_id } = req.body;
         const sender_id = req.user.id;
+
+        // Validate that either channel_id or dm_id is provided, but not both
+        if ((!channel_id && !dm_id) || (channel_id && dm_id)) {
+            return res.status(400).json({ message: 'Must provide either channel_id or dm_id' });
+        }
+
+        // If it's a DM, verify the user is a member
+        if (dm_id) {
+            const { data: membership, error: membershipError } = await supabase
+                .from('direct_message_members')
+                .select('dm_id')
+                .eq('dm_id', dm_id)
+                .eq('user_id', sender_id)
+                .single();
+
+            if (membershipError || !membership) {
+                return res.status(403).json({ message: 'Not authorized to send messages in this DM' });
+            }
+        }
 
         // First get the sender information
         const { data: sender, error: senderError } = await supabase
@@ -26,21 +45,14 @@ router.post('/', authenticateJWT, async (req, res) => {
             return res.status(500).json({ message: 'Error fetching sender information' });
         }
 
-        // Create the message with sender information
-        const messageData = {
-            content,
-            sender_id,
-            channel_id,
-            parent_id,
-            sender: sender // Include sender info directly
-        };
-
+        // Create the message
         const { data: message, error: messageError } = await supabase
             .from('messages')
             .insert({
                 content,
                 sender_id,
                 channel_id,
+                dm_id,
                 parent_id
             })
             .select(`

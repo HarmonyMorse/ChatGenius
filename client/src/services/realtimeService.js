@@ -42,7 +42,32 @@ class RealtimeService {
                     filter: `channel_id=eq.${channelId}`
                 },
                 (payload) => {
-                    console.log('Realtime message event:', payload.eventType, payload);
+                    console.log('Channel message event:', payload.eventType, payload);
+                    switch (payload.eventType) {
+                        case 'INSERT':
+                            onMessage({
+                                type: 'new_message',
+                                message: payload.new
+                            });
+                            break;
+                        case 'UPDATE':
+                            onMessage({
+                                type: 'message_updated',
+                                message: payload.new
+                            });
+                            break;
+                    }
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `dm_id=eq.${channelId}`
+                },
+                (payload) => {
+                    console.log('DM message event:', payload.eventType, payload);
                     switch (payload.eventType) {
                         case 'INSERT':
                             onMessage({
@@ -83,7 +108,7 @@ class RealtimeService {
                 }
             )
             .subscribe((status) => {
-                console.log(`Realtime subscription status for channel ${channelId}:`, status);
+                console.log(`Realtime subscription status for channel/DM ${channelId}:`, status);
             });
 
         // Store the subscription
