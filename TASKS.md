@@ -89,6 +89,7 @@
        > Added message threading functionality, allowing users to view and reply to message threads in a side column. Threads update in real-time with new replies.
      - [x] Enable message pinning
        > Added message pinning functionality with dedicated pinned messages view, real-time updates, and proper UI indicators.
+     - [ ] Any user in a channel can pin a message
 
 ## Phase 3: User Features
 1. User Management Implementation
