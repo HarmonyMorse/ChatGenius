@@ -73,15 +73,15 @@
      - [x] Add message editing
        > Implemented message editing with real-time updates, keyboard shortcuts (Enter/Esc), and proper authorization. Added UI indicators for edited messages and edit button for message owners.
      - [x] Add message deletion
-       > Added message deletion with confirmation dialog, proper authorization checks, and real-time updates. Only message owners can delete messages.
+       > Implemented message deletion with a confirmation dialog to prevent accidental deletions. Updated local state to reflect message removal in the chat interface.
      - [x] Create message formatting options
-       > Added Markdown support with react-markdown and remark-gfm. Created FormattedMessage component for rendering and FormattingGuide component with live preview. Supports bold, italic, lists, code blocks, quotes, and more.
+       > Implemented message formatting using Markdown with `react-markdown`, allowing users to format messages with links, lists, and other Markdown features.
    - [ ] Advanced message features
      - [ ] Implement message search
      - [x] Add message reactions
        > Implemented message reactions with Supabase Realtime, allowing users to add/remove emoji reactions that update in real-time across all clients. Created MessageReactions component with reaction picker and counter.
      - [x] Create message threading
-       > Added message threading with a side panel view, real-time updates, and proper thread management. Implemented ThreadView component with reply functionality and thread-specific realtime subscriptions.
+       > Added message threading functionality, allowing users to view and reply to message threads in a side column. Threads update in real-time with new replies.
      - [ ] Enable message pinning
 
 ## Phase 3: User Features
@@ -172,3 +172,10 @@
 - [ ] Create user manual
 - [ ] Document codebase
 - [ ] Prepare project presentation
+
+- [x] Add channel info bar and pinned messages
+  > Added channel info bar showing channel name and description. Implemented message pinning with a dedicated pinned messages view. Features include:
+  > - Channel name and truncated description in the header
+  > - Toggle button to view pinned messages
+  > - Real-time updates for pinned/unpinned messages
+  > - Proper pin status indicators and UI feedback
