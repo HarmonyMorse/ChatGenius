@@ -11,7 +11,9 @@ function Header({ onLogout }) {
     const [isEditingCustomStatus, setIsEditingCustomStatus] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [hexInputValue, setHexInputValue] = useState('#9333ea');
+    const [isAutoMode, setIsAutoMode] = useState(false);
     const customStatusInputRef = useRef(null);
+    const cleanupAutoStatusRef = useRef(null);
     const currentUser = getUser();
 
     const statusColors = [
@@ -29,7 +31,10 @@ function Header({ onLogout }) {
             try {
                 const userData = await userService.getUserStatus(currentUser.id);
                 setCurrentStatus(userData.status);
-                if (!['online', 'away', 'busy', 'offline'].includes(userData.status)) {
+                if (userData.status === 'auto') {
+                    setIsAutoMode(true);
+                    startAutoStatus();
+                } else if (!['online', 'away', 'busy', 'offline'].includes(userData.status)) {
                     const [text, color] = userData.status.split('|');
                     setCustomStatus(text);
                     setCustomStatusColor(color || '#9333ea');
@@ -40,17 +45,48 @@ function Header({ onLogout }) {
         };
 
         loadUserStatus();
+
+        return () => {
+            if (cleanupAutoStatusRef.current) {
+                cleanupAutoStatusRef.current();
+            }
+        };
     }, [currentUser.id]);
 
-    const handleStatusChange = async (status, color = null) => {
+    const startAutoStatus = () => {
+        if (cleanupAutoStatusRef.current) {
+            cleanupAutoStatusRef.current();
+        }
+
+        cleanupAutoStatusRef.current = userService.startAutoStatus(async (newStatus) => {
+            await handleStatusChange(newStatus, null, true);
+        });
+    };
+
+    const handleStatusChange = async (status, color = null, skipAutoCheck = false) => {
         try {
+            if (!skipAutoCheck && isAutoMode) {
+                userService.stopAutoStatus();
+                setIsAutoMode(false);
+            }
+
             const statusToSave = color ? `${status}|${color}` : status;
             await userService.updateStatus(statusToSave);
             setCurrentStatus(statusToSave);
-            setShowStatusMenu(false);
-            if (!['online', 'away', 'busy', 'offline'].includes(status)) {
+
+            // Only close the menu if it's not an auto-update
+            if (!skipAutoCheck) {
+                setShowStatusMenu(false);
+            }
+
+            if (!['online', 'away', 'busy', 'offline', 'auto'].includes(status)) {
                 setCustomStatus(status);
                 if (color) setCustomStatusColor(color);
+            }
+
+            if (status === 'auto' && !skipAutoCheck) {
+                setIsAutoMode(true);
+                startAutoStatus();
             }
         } catch (error) {
             console.error('Error updating status:', error);
@@ -179,6 +215,16 @@ function Header({ onLogout }) {
                             {showStatusMenu && (
                                 <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                                     <div className="py-1" role="menu">
+                                        <button
+                                            onClick={() => handleStatusChange('auto')}
+                                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <div className="w-2 h-2 rounded-full mr-2 bg-gradient-to-r from-green-500 to-yellow-500" />
+                                            Auto (Online/Away)
+                                            {isAutoMode && (
+                                                <span className="ml-2 text-xs text-green-600">✓</span>
+                                            )}
+                                        </button>
                                         <button
                                             onClick={() => handleStatusChange('online')}
                                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
