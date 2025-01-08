@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 import * as authService from '../services/auth';
 
 const Auth = ({ onLogin }) => {
-    const [showHeader, setShowHeader] = useState(true);
     const [showFooter, setShowFooter] = useState(true);
     const [isSignIn, setIsSignIn] = useState(true);
     const [email, setEmail] = useState('');
@@ -41,13 +40,10 @@ const Auth = ({ onLogin }) => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
-            {showHeader && (
-                <Header
-                    isSignIn={isSignIn}
-                    onToggle={() => setShowHeader(!showHeader)}
-                    onModeToggle={toggleMode}
-                />
-            )}
+            <Header
+                isSignIn={isSignIn}
+                onModeToggle={toggleMode}
+            />
 
             <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
                 <div className="max-w-md w-full space-y-8">

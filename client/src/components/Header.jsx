@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Header = ({ isSignIn, onToggle, onLogout, onModeToggle }) => {
+const Header = ({ isSignIn, onLogout, onModeToggle }) => {
     return (
         <header className="bg-white shadow-sm p-4">
             <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -24,12 +24,6 @@ const Header = ({ isSignIn, onToggle, onLogout, onModeToggle }) => {
                             </span>
                         </button>
                     )}
-                    <button
-                        onClick={onToggle}
-                        className="text-sm text-gray-600 hover:text-gray-900"
-                    >
-                        Toggle Header
-                    </button>
                 </div>
             </div>
         </header>
@@ -38,7 +32,6 @@ const Header = ({ isSignIn, onToggle, onLogout, onModeToggle }) => {
 
 Header.propTypes = {
     isSignIn: PropTypes.bool,
-    onToggle: PropTypes.func.isRequired,
     onLogout: PropTypes.func,
     onModeToggle: PropTypes.func,
 };

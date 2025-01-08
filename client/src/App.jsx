@@ -26,7 +26,7 @@ function App() {
             isAuthenticated ? (
               <Navigate to="/chat" replace />
             ) : (
-              <Auth onAuthenticated={() => setIsAuthenticated(true)} />
+              <Auth onLogin={() => setIsAuthenticated(true)} />
             )
           }
         />
