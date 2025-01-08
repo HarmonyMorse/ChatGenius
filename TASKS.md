@@ -80,7 +80,8 @@
      - [ ] Implement message search
      - [x] Add message reactions
        > Implemented message reactions with Supabase Realtime, allowing users to add/remove emoji reactions that update in real-time across all clients. Created MessageReactions component with reaction picker and counter.
-     - [ ] Create message threading
+     - [x] Create message threading
+       > Added message threading with a side panel view, real-time updates, and proper thread management. Implemented ThreadView component with reply functionality and thread-specific realtime subscriptions.
      - [ ] Enable message pinning
 
 ## Phase 3: User Features

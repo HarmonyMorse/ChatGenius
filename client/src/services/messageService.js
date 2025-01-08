@@ -34,6 +34,16 @@ class MessageService {
         const response = await api.delete(`/api/messages/${messageId}`);
         return response.data;
     }
+
+    async getThreadReplies(parentId) {
+        const response = await api.get(`/api/messages/thread/${parentId}`);
+        return response.data;
+    }
+
+    async getThreadCount(messageId) {
+        const response = await api.get(`/api/messages/thread/${messageId}/count`);
+        return response.data.count;
+    }
 }
 
 const messageService = new MessageService();

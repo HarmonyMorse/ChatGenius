@@ -91,6 +91,76 @@ class RealtimeService {
         return channel;
     }
 
+    subscribeToThread(parentId, onMessage) {
+        const channel = supabase
+            .channel(`thread:${parentId}`)
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `parent_id=eq.${parentId}`
+                },
+                (payload) => {
+                    console.log('Thread realtime event:', payload.eventType, payload);
+                    switch (payload.eventType) {
+                        case 'INSERT':
+                            onMessage({
+                                type: 'new_message',
+                                message: payload.new
+                            });
+                            break;
+                        case 'UPDATE':
+                            onMessage({
+                                type: 'message_updated',
+                                message: payload.new
+                            });
+                            break;
+                        case 'DELETE':
+                            onMessage({
+                                type: 'message_deleted',
+                                messageId: payload.old.id
+                            });
+                            break;
+                    }
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'message_reactions'
+                },
+                async (payload) => {
+                    try {
+                        const messageId = payload.new?.message_id || payload.old?.message_id;
+                        if (messageId) {
+                            const reactions = await reactionService.getMessageReactions(messageId);
+                            onMessage({
+                                type: 'reactions_updated',
+                                messageId,
+                                reactions
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching updated reactions:', error);
+                    }
+                }
+            )
+            .subscribe((status) => {
+                console.log(`Thread subscription status for ${parentId}:`, status);
+            });
+
+        return channel;
+    }
+
+    unsubscribeFromThread(parentId) {
+        const channel = supabase.channel(`thread:${parentId}`);
+        if (channel) {
+            supabase.removeChannel(channel);
+        }
+    }
+
     unsubscribeFromChannel(channelId) {
         const channel = this.channels.get(channelId);
         if (channel) {

@@ -11,12 +11,14 @@ import MessageReactions from './MessageReactions';
 import EditMessageForm from './EditMessageForm';
 import FormattedMessage from './FormattedMessage';
 import FormattingGuide from './FormattingGuide';
+import ThreadView from './ThreadView';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [typingUsers, setTypingUsers] = useState([]);
     const [editingMessageId, setEditingMessageId] = useState(null);
+    const [activeThread, setActiveThread] = useState(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -238,10 +240,10 @@ function Chat({ onLogout }) {
                 </div>
 
                 {/* Main chat area */}
-                <div className="flex-1 flex flex-col">
+                <div className={`flex-1 flex flex-col ${activeThread ? 'w-[calc(100%-40rem)]' : ''}`}>
                     {/* Messages area */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {messages.map((message) => (
+                        {messages.filter(msg => !msg.parent_id).map((message) => (
                             <div key={message.id} className="flex items-start space-x-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
                                     {message.sender?.avatar_url && (
@@ -279,6 +281,12 @@ function Chat({ onLogout }) {
                                                 </button>
                                             </div>
                                         )}
+                                        <button
+                                            onClick={() => setActiveThread(message)}
+                                            className="text-gray-400 hover:text-gray-600 text-sm"
+                                        >
+                                            Reply
+                                        </button>
                                     </div>
                                     {editingMessageId === message.id ? (
                                         <EditMessageForm
@@ -333,6 +341,22 @@ function Chat({ onLogout }) {
                         </div>
                     </form>
                 </div>
+
+                {/* Thread panel */}
+                {activeThread && (
+                    <div className="w-96 bg-white">
+                        <ThreadView
+                            parentMessage={activeThread}
+                            onClose={() => setActiveThread(null)}
+                            onParentReactionUpdate={(reactions) => {
+                                setMessages(prev => prev.map(msg =>
+                                    msg.id === activeThread.id ? { ...msg, reactions } : msg
+                                ));
+                                setActiveThread(prev => ({ ...prev, reactions }));
+                            }}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

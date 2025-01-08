@@ -11,7 +11,7 @@ const supabase = createClient(
 // Create a new message
 router.post('/', authenticateJWT, async (req, res) => {
     try {
-        const { content, channel_id } = req.body;
+        const { content, channel_id, parent_id } = req.body;
         const sender_id = req.user.id;
 
         // First get the sender information
@@ -31,6 +31,7 @@ router.post('/', authenticateJWT, async (req, res) => {
             content,
             sender_id,
             channel_id,
+            parent_id,
             sender: sender // Include sender info directly
         };
 
@@ -39,7 +40,8 @@ router.post('/', authenticateJWT, async (req, res) => {
             .insert({
                 content,
                 sender_id,
-                channel_id
+                channel_id,
+                parent_id
             })
             .select(`
                 *,
@@ -187,6 +189,54 @@ router.delete('/:messageId', authenticateJWT, async (req, res) => {
         res.json({ message: 'Message deleted successfully' });
     } catch (error) {
         console.error('Error in message deletion:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get thread replies
+router.get('/thread/:parentId', authenticateJWT, async (req, res) => {
+    try {
+        const { parentId } = req.params;
+
+        const { data: replies, error } = await supabase
+            .from('messages')
+            .select(`
+                *,
+                sender:sender_id(id, username, avatar_url)
+            `)
+            .eq('parent_id', parentId)
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching thread replies:', error);
+            return res.status(500).json({ message: 'Error fetching thread replies' });
+        }
+
+        res.json(replies);
+    } catch (error) {
+        console.error('Error in thread replies retrieval:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get thread reply count
+router.get('/thread/:messageId/count', authenticateJWT, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+
+        const { count, error } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact' })
+            .eq('parent_id', messageId);
+
+        if (error) {
+            console.error('Error counting thread replies:', error);
+            return res.status(500).json({ message: 'Error counting thread replies' });
+        }
+
+        res.json({ count });
+    } catch (error) {
+        console.error('Error in thread count retrieval:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
