@@ -73,6 +73,7 @@ CREATE TABLE messages (
     dm_id UUID REFERENCES direct_messages(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES messages(id) ON DELETE CASCADE,
     is_edited BOOLEAN DEFAULT false,
+    is_system_message BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CHECK (
