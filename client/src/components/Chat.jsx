@@ -19,6 +19,7 @@ function Chat({ onLogout }) {
     const [typingUsers, setTypingUsers] = useState([]);
     const [editingMessageId, setEditingMessageId] = useState(null);
     const [activeThread, setActiveThread] = useState(null);
+    const [replyCounts, setReplyCounts] = useState({});
     const [searchParams, setSearchParams] = useSearchParams();
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -48,6 +49,14 @@ function Chat({ onLogout }) {
                         reactions: []
                     };
                     setMessages(prev => [...prev, messageWithSender]);
+
+                    // If this is a reply, update the reply count for the parent message
+                    if (event.message.parent_id) {
+                        setReplyCounts(prev => ({
+                            ...prev,
+                            [event.message.parent_id]: (prev[event.message.parent_id] || 0) + 1
+                        }));
+                    }
 
                     // If we don't have complete sender info, fetch it
                     if (!event.message.sender) {
@@ -86,9 +95,17 @@ function Chat({ onLogout }) {
                     console.log('Handling message deletion:', event.messageId);
                     setMessages(prev => {
                         console.log('Current messages:', prev);
-                        // Only remove the message if it exists in our current message list
-                        // This ensures we only remove messages from the current channel
                         const messageExists = prev.some(msg => msg.id === event.messageId);
+                        const deletedMessage = prev.find(msg => msg.id === event.messageId);
+
+                        // If the deleted message was a reply, update the reply count
+                        if (deletedMessage?.parent_id) {
+                            setReplyCounts(prev => ({
+                                ...prev,
+                                [deletedMessage.parent_id]: Math.max(0, (prev[deletedMessage.parent_id] || 0) - 1)
+                            }));
+                        }
+
                         return messageExists ? prev.filter(msg => msg.id !== event.messageId) : prev;
                     });
                     break;
@@ -117,6 +134,22 @@ function Chat({ onLogout }) {
                     })
                 );
                 setMessages(messagesWithReactions);
+
+                // Load reply counts for each message
+                const counts = {};
+                await Promise.all(
+                    messages.filter(msg => !msg.parent_id).map(async (message) => {
+                        try {
+                            const count = await messageService.getThreadCount(message.id);
+                            if (count > 0) {
+                                counts[message.id] = count;
+                            }
+                        } catch (error) {
+                            console.error('Error fetching reply count:', error);
+                        }
+                    })
+                );
+                setReplyCounts(counts);
             } catch (error) {
                 console.error('Error loading messages:', error);
             }
@@ -224,6 +257,17 @@ function Chat({ onLogout }) {
         }
     };
 
+    const handlePinMessage = async (messageId) => {
+        try {
+            const updatedMessage = await messageService.togglePin(messageId);
+            setMessages(prev => prev.map(msg =>
+                msg.id === messageId ? { ...updatedMessage, reactions: msg.reactions } : msg
+            ));
+        } catch (error) {
+            console.error('Error toggling message pin:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -265,6 +309,14 @@ function Chat({ onLogout }) {
                                         {message.is_edited && (
                                             <span className="text-xs text-gray-400">(edited)</span>
                                         )}
+                                        {message.pinned && (
+                                            <span className="text-xs text-yellow-600 flex items-center">
+                                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" />
+                                                </svg>
+                                                Pinned
+                                            </span>
+                                        )}
                                         {message.sender_id === currentUser.id && (
                                             <div className="flex items-center space-x-2">
                                                 <button
@@ -279,13 +331,24 @@ function Chat({ onLogout }) {
                                                 >
                                                     Delete
                                                 </button>
+                                                <button
+                                                    onClick={() => handlePinMessage(message.id)}
+                                                    className={`text-sm ${message.pinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-gray-400 hover:text-gray-600'}`}
+                                                >
+                                                    {message.pinned ? 'Unpin' : 'Pin'}
+                                                </button>
                                             </div>
                                         )}
                                         <button
                                             onClick={() => setActiveThread(message)}
-                                            className="text-gray-400 hover:text-gray-600 text-sm"
+                                            className="text-gray-400 hover:text-gray-600 text-sm flex items-center space-x-1"
                                         >
-                                            Reply
+                                            <span>Reply</span>
+                                            {replyCounts[message.id] > 0 && (
+                                                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                                                    {replyCounts[message.id]}
+                                                </span>
+                                            )}
                                         </button>
                                     </div>
                                     {editingMessageId === message.id ? (

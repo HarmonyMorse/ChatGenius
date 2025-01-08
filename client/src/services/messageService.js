@@ -44,6 +44,11 @@ class MessageService {
         const response = await api.get(`/api/messages/thread/${messageId}/count`);
         return response.data.count;
     }
+
+    async togglePin(messageId) {
+        const response = await api.put(`/api/messages/${messageId}/pin`);
+        return response.data;
+    }
 }
 
 const messageService = new MessageService();

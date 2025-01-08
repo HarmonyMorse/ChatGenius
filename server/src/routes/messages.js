@@ -241,4 +241,92 @@ router.get('/thread/:messageId/count', authenticateJWT, async (req, res) => {
     }
 });
 
+// Toggle message pin status
+router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const userId = req.user.id;
+
+        // First check if the message exists and get its channel_id
+        const { data: message, error: messageError } = await supabase
+            .from('messages')
+            .select('id, channel_id')
+            .eq('id', messageId)
+            .single();
+
+        if (messageError) {
+            console.error('Error fetching message:', messageError);
+            return res.status(500).json({ message: 'Error fetching message' });
+        }
+
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        // Check if the message is already pinned
+        const { data: pinnedMessage, error: pinnedError } = await supabase
+            .from('pinned_messages')
+            .select('*')
+            .eq('message_id', messageId)
+            .single();
+
+        if (pinnedError && pinnedError.code !== 'PGRST116') { // PGRST116 is "not found" error
+            console.error('Error checking pinned status:', pinnedError);
+            return res.status(500).json({ message: 'Error checking pinned status' });
+        }
+
+        let result;
+        if (pinnedMessage) {
+            // Message is pinned, so unpin it
+            const { error: deleteError } = await supabase
+                .from('pinned_messages')
+                .delete()
+                .eq('message_id', messageId);
+
+            if (deleteError) {
+                console.error('Error unpinning message:', deleteError);
+                return res.status(500).json({ message: 'Error unpinning message' });
+            }
+            result = { ...message, pinned: false };
+        } else {
+            // Message is not pinned, so pin it
+            const { data: newPinnedMessage, error: insertError } = await supabase
+                .from('pinned_messages')
+                .insert({
+                    message_id: messageId,
+                    channel_id: message.channel_id,
+                    pinned_by: userId
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('Error pinning message:', insertError);
+                return res.status(500).json({ message: 'Error pinning message' });
+            }
+            result = { ...message, pinned: true };
+        }
+
+        // Get the full message data with sender info to return
+        const { data: fullMessage, error: fullMessageError } = await supabase
+            .from('messages')
+            .select(`
+                *,
+                sender:sender_id(id, username, avatar_url)
+            `)
+            .eq('id', messageId)
+            .single();
+
+        if (fullMessageError) {
+            console.error('Error fetching full message:', fullMessageError);
+            return res.status(500).json({ message: 'Error fetching full message data' });
+        }
+
+        res.json({ ...fullMessage, pinned: !pinnedMessage });
+    } catch (error) {
+        console.error('Error in message pin toggle:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 export default router;
