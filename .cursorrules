@@ -1,5 +1,9 @@
 # Cursor Rules
 
+## When using a shell
+
+USE BASH OR ZSH
+
 ## When committing code, please follow these rules:
 
 1. Git status before committing to see what files are yet to be added/committed
