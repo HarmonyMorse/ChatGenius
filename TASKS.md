@@ -17,6 +17,7 @@
      > Installed and configured Passport.js with JWT strategy, set up token generation, and integrated with Supabase.
    - [x] Create login/registration UI components
      > Created custom SignIn and SignUp components with form validation and error handling.
+     > Removed header toggle functionality for cleaner UI.
    - [x] Implement authentication middleware
      > Added JWT verification middleware and protected route components.
    - [x] Set up protected routes
@@ -65,11 +66,15 @@
        > Designed channel schema with user roles, permissions, and message relationships
      - [ ] Implement channel CRUD operations
        > Next step: Add update and delete functionality for channels
-     - [ ] Build direct messaging functionality
+     - [x] Build direct messaging functionality
+       > Implemented direct messaging with real-time updates, user selection, and conversation history
      - [ ] Design channel/DM navigation UI
+       - [ ] Unread indicators
+       - [x] Channel/DM selection
+       - [x] Conversation history
 
 3. Message Features
-   - [ ] Core message functionality
+   - [x] Core message functionality
      - [x] Add message editing
        > Implemented message editing with real-time updates, keyboard shortcuts (Enter/Esc), and proper authorization. Added UI indicators for edited messages and edit button for message owners.
      - [x] Add message deletion
@@ -82,7 +87,8 @@
        > Implemented message reactions with Supabase Realtime, allowing users to add/remove emoji reactions that update in real-time across all clients. Created MessageReactions component with reaction picker and counter.
      - [x] Create message threading
        > Added message threading functionality, allowing users to view and reply to message threads in a side column. Threads update in real-time with new replies.
-     - [ ] Enable message pinning
+     - [x] Enable message pinning
+       > Added message pinning functionality with dedicated pinned messages view, real-time updates, and proper UI indicators.
 
 ## Phase 3: User Features
 1. User Management Implementation
