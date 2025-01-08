@@ -59,7 +59,7 @@ class UserService {
                 if (this.isAutoMode) {
                     onStatusChange('away');
                 }
-            }, 5 * 60 * 1000); // 5 minutes
+            }, 3 * 1000); // 5 minutes
         };
 
         // Initial status
