@@ -7,6 +7,7 @@ import realtimeService from '../services/realtimeService';
 import reactionService from '../services/reactionService';
 import { getUser } from '../services/auth';
 import ChannelList from './ChannelList';
+import DirectMessageList from './DirectMessageList';
 import MessageReactions from './MessageReactions';
 import EditMessageForm from './EditMessageForm';
 import FormattedMessage from './FormattedMessage';
@@ -30,7 +31,10 @@ function Chat({ onLogout }) {
     const typingTimeoutRef = useRef(null);
     const typingChannelRef = useRef(null);
     const currentUser = getUser();
-    const currentChannelId = searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064';
+    const [selectedDMId, setSelectedDMId] = useState(null);
+    const [dmParticipants, setDMParticipants] = useState([]);
+
+    const currentChannelId = !selectedDMId ? (searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064') : null;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -200,7 +204,8 @@ function Chat({ onLogout }) {
         try {
             const message = {
                 content: newMessage.trim(),
-                channel_id: currentChannelId
+                channel_id: currentChannelId,
+                dm_id: selectedDMId
             };
 
             // Send message through API
@@ -234,6 +239,7 @@ function Chat({ onLogout }) {
     };
 
     const handleChannelSelect = (channelId) => {
+        setSelectedDMId(null);  // Clear selected DM
         setSearchParams({ channel: channelId });
     };
 
@@ -338,6 +344,41 @@ function Chat({ onLogout }) {
         setShowPinnedMessages(show);
     };
 
+    useEffect(() => {
+        if (selectedDMId) {
+            const loadDMParticipants = async () => {
+                try {
+                    const { data: members, error } = await supabase
+                        .from('direct_message_members')
+                        .select(`
+                            user:user_id(
+                                id,
+                                username,
+                                avatar_url
+                            )
+                        `)
+                        .eq('dm_id', selectedDMId);
+
+                    if (error) {
+                        console.error('Error loading DM participants:', error);
+                        return;
+                    }
+
+                    setDMParticipants(members.map(m => m.user));
+                } catch (error) {
+                    console.error('Error in DM participants loading:', error);
+                }
+            };
+
+            loadDMParticipants();
+        }
+    }, [selectedDMId]);
+
+    const handleDMSelect = (dmId) => {
+        setSelectedDMId(dmId);
+        setSearchParams({});  // Clear channel from URL
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -350,17 +391,33 @@ function Chat({ onLogout }) {
                             onChannelSelect={handleChannelSelect}
                             selectedChannelId={currentChannelId}
                         />
+                        <DirectMessageList
+                            onDMSelect={handleDMSelect}
+                            selectedDMId={selectedDMId}
+                        />
                     </div>
                 </div>
 
                 {/* Main chat area */}
                 <div className={`flex-1 flex flex-col ${activeThread ? 'w-[calc(100%-40rem)]' : ''}`}>
-                    {/* Channel info bar */}
-                    {currentChannel && (
+                    {/* Channel/DM info bar */}
+                    {currentChannel && !selectedDMId && (
                         <ChannelInfoBar
                             channel={currentChannel}
                             onViewPinnedMessages={handleViewPinnedMessages}
                         />
+                    )}
+                    {selectedDMId && dmParticipants.length > 0 && (
+                        <div className="bg-white border-b px-6 py-3">
+                            <div className="flex items-center">
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    {dmParticipants
+                                        .filter(p => p.id !== currentUser.id)
+                                        .map(p => p.username)
+                                        .join(', ')}
+                                </h2>
+                            </div>
+                        </div>
                     )}
 
                     {/* Messages area */}

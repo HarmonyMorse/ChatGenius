@@ -329,4 +329,44 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
     }
 });
 
+// Get messages for a DM
+router.get('/dm/:dmId', authenticateJWT, async (req, res) => {
+    try {
+        const { dmId } = req.params;
+        const userId = req.user.id;
+
+        // First check if the user is a member of this DM
+        const { data: membership, error: membershipError } = await supabase
+            .from('direct_message_members')
+            .select('dm_id')
+            .eq('dm_id', dmId)
+            .eq('user_id', userId)
+            .single();
+
+        if (membershipError || !membership) {
+            return res.status(403).json({ message: 'Not authorized to view this DM' });
+        }
+
+        // Get messages for this DM
+        const { data: messages, error: messagesError } = await supabase
+            .from('messages')
+            .select(`
+                *,
+                sender:sender_id(id, username, avatar_url)
+            `)
+            .eq('dm_id', dmId)
+            .order('created_at', { ascending: true });
+
+        if (messagesError) {
+            console.error('Error fetching DM messages:', messagesError);
+            return res.status(500).json({ message: 'Error fetching DM messages' });
+        }
+
+        res.json(messages);
+    } catch (error) {
+        console.error('Error in DM messages retrieval:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 export default router;

@@ -11,6 +11,11 @@ class MessageService {
         return response.data;
     }
 
+    async getDMMessages(dmId) {
+        const response = await api.get(`/api/messages/dm/${dmId}`);
+        return response.data;
+    }
+
     async getMessageSender(senderId) {
         try {
             const response = await api.get(`/api/users/${senderId}`);
