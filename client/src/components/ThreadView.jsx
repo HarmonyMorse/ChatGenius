@@ -52,26 +52,43 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             }
         });
 
-        // Subscribe to typing indicators for the thread
-        typingChannelRef.current = realtimeService.subscribeToTyping(`thread:${parentMessage.id}`, (users) => {
+        // Subscribe to typing indicators for both thread and parent channel/DM
+        const threadTypingChannel = realtimeService.subscribeToTyping(`thread:${parentMessage.id}`, (users) => {
             setTypingUsers(users.filter(user => user.user_id !== currentUser.id));
         });
 
+        const parentTypingChannel = realtimeService.subscribeToTyping(
+            parentMessage.dm_id || parentMessage.channel_id,
+            () => { } // We don't need to handle parent typing updates in the thread view
+        );
+
+        typingChannelRef.current = {
+            thread: threadTypingChannel,
+            parent: parentTypingChannel
+        };
+
         return () => {
             realtimeService.unsubscribeFromThread(parentMessage.id);
-            if (typingChannelRef.current) {
-                realtimeService.stopTyping(typingChannelRef.current);
+            if (typingChannelRef.current.thread) {
+                realtimeService.stopTyping(typingChannelRef.current.thread);
+            }
+            if (typingChannelRef.current.parent) {
+                realtimeService.stopTyping(typingChannelRef.current.parent);
             }
         };
-    }, [parentMessage.id, currentUser.id]);
+    }, [parentMessage.id, currentUser.id, parentMessage.dm_id, parentMessage.channel_id]);
 
     useEffect(() => {
         repliesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [replies]);
 
     const handleTyping = () => {
-        if (typingChannelRef.current) {
-            realtimeService.startTyping(typingChannelRef.current, currentUser);
+        // Start typing in both thread and parent channel/DM
+        if (typingChannelRef.current.thread) {
+            realtimeService.startTyping(typingChannelRef.current.thread, currentUser);
+        }
+        if (typingChannelRef.current.parent) {
+            realtimeService.startTyping(typingChannelRef.current.parent, currentUser);
         }
 
         // Clear existing timeout
@@ -81,8 +98,11 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
 
         // Set new timeout
         typingTimeoutRef.current = setTimeout(() => {
-            if (typingChannelRef.current) {
-                realtimeService.stopTyping(typingChannelRef.current);
+            if (typingChannelRef.current.thread) {
+                realtimeService.stopTyping(typingChannelRef.current.thread);
+            }
+            if (typingChannelRef.current.parent) {
+                realtimeService.stopTyping(typingChannelRef.current.parent);
             }
         }, 1000);
     };
@@ -102,9 +122,12 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             await messageService.sendMessage(reply);
             setNewReply('');
 
-            // Clear typing indicator
-            if (typingChannelRef.current) {
-                realtimeService.stopTyping(typingChannelRef.current);
+            // Clear typing indicators in both thread and parent
+            if (typingChannelRef.current.thread) {
+                realtimeService.stopTyping(typingChannelRef.current.thread);
+            }
+            if (typingChannelRef.current.parent) {
+                realtimeService.stopTyping(typingChannelRef.current.parent);
             }
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current);
