@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 import * as authService from '../services/auth';
 
@@ -40,10 +39,17 @@ const Auth = ({ onLogin }) => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header
-                isSignIn={isSignIn}
-                onModeToggle={toggleMode}
-            />
+            <header className="bg-white shadow">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-16">
+                        <div className="flex">
+                            <div className="flex-shrink-0 flex items-center">
+                                <h1 className="text-xl font-bold text-gray-900">ChatGenius</h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
             <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
                 <div className="max-w-md w-full space-y-8">

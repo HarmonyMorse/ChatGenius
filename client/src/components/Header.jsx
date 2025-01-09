@@ -393,7 +393,11 @@ function Header({ onLogout }) {
 }
 
 Header.propTypes = {
-    onLogout: PropTypes.func.isRequired
+    onLogout: PropTypes.func
+};
+
+Header.defaultProps = {
+    onLogout: () => { }
 };
 
 export default Header; 
