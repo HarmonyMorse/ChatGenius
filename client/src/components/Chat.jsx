@@ -264,11 +264,18 @@ function Chat({ onLogout }) {
     useEffect(() => {
         const loadChannel = async () => {
             try {
-                if (currentChannelId) {
-                    const channel = await channelService.getChannel(currentChannelId);
-                    console.log('Loaded channel:', channel); // Add logging to debug
-                    setCurrentChannel(channel);
+                const { data: channel, error } = await supabase
+                    .from('channels')
+                    .select('*')
+                    .eq('id', currentChannelId)
+                    .single();
+
+                if (error) {
+                    console.error('Error loading channel:', error);
+                    return;
                 }
+
+                setCurrentChannel(channel);
             } catch (error) {
                 console.error('Error in channel loading:', error);
             }
