@@ -1,4 +1,5 @@
 -- Drop existing tables and functions
+DROP PUBLICATION IF EXISTS supabase_realtime;
 DROP TABLE IF EXISTS pinned_messages CASCADE;
 DROP TABLE IF EXISTS bookmarked_messages CASCADE;
 DROP TABLE IF EXISTS user_settings CASCADE;
@@ -11,9 +12,27 @@ DROP TABLE IF EXISTS channel_members CASCADE;
 DROP TABLE IF EXISTS channels CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP FUNCTION IF EXISTS update_updated_at_column();
+DROP FUNCTION IF EXISTS messages_content_trigger();
+DROP TEXT SEARCH CONFIGURATION IF EXISTS message_search;
 
--- Create extension for UUID support if it doesn't exist
+-- Create extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Create custom text search configuration
+CREATE TEXT SEARCH CONFIGURATION message_search (COPY = english);
+ALTER TEXT SEARCH CONFIGURATION message_search
+    ALTER MAPPING FOR hword, hword_part, word
+    WITH unaccent, english_stem;
+
+-- Create function for message content search
+CREATE OR REPLACE FUNCTION messages_content_trigger() RETURNS trigger AS $$
+BEGIN
+    NEW.content_tsv := to_tsvector('message_search', NEW.content || ' ' || regexp_replace(NEW.content, '\w+', ' \0', 'g'));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Users Table
 CREATE TABLE users (
@@ -76,11 +95,22 @@ CREATE TABLE messages (
     is_system_message BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    content_tsv tsvector GENERATED ALWAYS AS (to_tsvector('message_search', content || ' ' || regexp_replace(content, '\w+', ' \0', 'g'))) STORED,
     CHECK (
         (channel_id IS NOT NULL AND dm_id IS NULL) OR
         (channel_id IS NULL AND dm_id IS NOT NULL)
     )
 );
+
+-- Create index for message search
+CREATE INDEX messages_content_tsv_idx ON messages USING GIN (content_tsv);
+CREATE INDEX messages_content_ilike_idx ON messages USING gin (content gin_trgm_ops);
+
+-- Create trigger for message content search
+CREATE TRIGGER messages_content_update
+    BEFORE INSERT OR UPDATE ON messages
+    FOR EACH ROW
+    EXECUTE FUNCTION messages_content_trigger();
 
 -- Message Reactions Table
 CREATE TABLE message_reactions (
@@ -153,4 +183,8 @@ CREATE TRIGGER update_channels_updated_at
 CREATE TRIGGER update_messages_updated_at
     BEFORE UPDATE ON messages
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column(); 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable realtime functionality
+CREATE PUBLICATION supabase_realtime FOR TABLE messages, message_reactions, users, direct_message_members;
+ALTER PUBLICATION supabase_realtime SET (publish = 'insert,update,delete'); 
