@@ -1,3 +1,5 @@
+import { getToken } from './auth';
+
 const API_BASE_URL = 'http://localhost:3000/api';
 
 const uploadFile = async (file, channelId, messageContent = '') => {
@@ -8,7 +10,7 @@ const uploadFile = async (file, channelId, messageContent = '') => {
         formData.append('messageContent', messageContent);
     }
 
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) {
         throw new Error('No authentication token found');
     }
@@ -30,7 +32,7 @@ const uploadFile = async (file, channelId, messageContent = '') => {
         try {
             const error = JSON.parse(errorText);
             throw new Error(error.message || 'Error uploading file');
-        } catch (e) {
+        } catch {
             throw new Error(errorText || 'Error uploading file');
         }
     }
