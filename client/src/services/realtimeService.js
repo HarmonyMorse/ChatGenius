@@ -154,19 +154,33 @@ class RealtimeService {
                     table: 'messages',
                     filter: `parent_id=eq.${parentId}`
                 },
-                (payload) => {
+                async (payload) => {
                     console.log('Thread realtime event:', payload.eventType, payload);
+                    // Get sender information if not included
+                    let messageWithSender = payload.new;
+                    if (payload.eventType !== 'DELETE' && !payload.new.sender) {
+                        try {
+                            const { data: sender } = await supabase
+                                .from('users')
+                                .select('id, username, avatar_url')
+                                .eq('id', messageWithSender.sender_id)
+                                .single();
+                            messageWithSender = { ...messageWithSender, sender };
+                        } catch (error) {
+                            console.error('Error fetching sender:', error);
+                        }
+                    }
                     switch (payload.eventType) {
                         case 'INSERT':
                             onMessage({
                                 type: 'new_message',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                         case 'UPDATE':
                             onMessage({
                                 type: 'message_updated',
-                                message: payload.new
+                                message: messageWithSender
                             });
                             break;
                         case 'DELETE':
