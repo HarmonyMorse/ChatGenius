@@ -12,7 +12,10 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
     const [replies, setReplies] = useState([]);
     const [newReply, setNewReply] = useState('');
     const [editingMessageId, setEditingMessageId] = useState(null);
+    const [typingUsers, setTypingUsers] = useState([]);
     const repliesEndRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
+    const typingChannelRef = useRef(null);
     const currentUser = getUser();
 
     useEffect(() => {
@@ -49,14 +52,40 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             }
         });
 
+        // Subscribe to typing indicators for the thread
+        typingChannelRef.current = realtimeService.subscribeToTyping(`thread:${parentMessage.id}`, (users) => {
+            setTypingUsers(users.filter(user => user.user_id !== currentUser.id));
+        });
+
         return () => {
             realtimeService.unsubscribeFromThread(parentMessage.id);
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
         };
-    }, [parentMessage.id]);
+    }, [parentMessage.id, currentUser.id]);
 
     useEffect(() => {
         repliesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [replies]);
+
+    const handleTyping = () => {
+        if (typingChannelRef.current) {
+            realtimeService.startTyping(typingChannelRef.current, currentUser);
+        }
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Set new timeout
+        typingTimeoutRef.current = setTimeout(() => {
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
+        }, 1000);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -72,6 +101,14 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
 
             await messageService.sendMessage(reply);
             setNewReply('');
+
+            // Clear typing indicator
+            if (typingChannelRef.current) {
+                realtimeService.stopTyping(typingChannelRef.current);
+            }
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
         } catch (error) {
             console.error('Error sending reply:', error);
         }
@@ -225,6 +262,11 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                             </div>
                         </div>
                     ))}
+                    {typingUsers.length > 0 && (
+                        <div className="text-sm text-gray-500 italic">
+                            {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                        </div>
+                    )}
                     <div ref={repliesEndRef} />
                 </div>
             </div>
@@ -236,7 +278,10 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                         <input
                             type="text"
                             value={newReply}
-                            onChange={(e) => setNewReply(e.target.value)}
+                            onChange={(e) => {
+                                setNewReply(e.target.value);
+                                handleTyping();
+                            }}
                             placeholder="Reply to thread..."
                             className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
