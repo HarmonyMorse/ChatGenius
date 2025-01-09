@@ -15,4 +15,5 @@ USE BASH OR ZSH
    2. Do not end the commit message with a period
    3. Make the commit message a single line
    4. Capitalize the first letter of the commit message
+6. Git status after commiting to ensure all files are committed. Repeat these steps if necessary
 
