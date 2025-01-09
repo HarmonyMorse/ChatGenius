@@ -1,20 +1,14 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+import EditChannelModal from './EditChannelModal';
 
-function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel }) {
+function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel, onChannelUpdated }) {
     const [showPinnedMessages, setShowPinnedMessages] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
 
     const handlePinnedClick = () => {
         setShowPinnedMessages(!showPinnedMessages);
         onViewPinnedMessages(!showPinnedMessages);
-    };
-
-    const handleLeaveChannel = () => {
-        if (window.confirm('Are you sure you want to leave this channel?')) {
-            onLeaveChannel();
-            setShowSettings(false);
-        }
     };
 
     return (
@@ -40,33 +34,28 @@ function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel }) {
                         </svg>
                         <span className="text-sm font-medium">Pinned</span>
                     </button>
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowSettings(!showSettings)}
-                            className="flex items-center space-x-1 px-3 py-1 rounded hover:bg-gray-100 text-gray-600"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                            </svg>
-                            <span className="text-sm font-medium">Settings</span>
-                        </button>
-
-                        {showSettings && (
-                            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                                <div className="py-1" role="menu">
-                                    <button
-                                        onClick={handleLeaveChannel}
-                                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                        role="menuitem"
-                                    >
-                                        Leave Channel
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <button
+                        onClick={() => setShowSettingsModal(true)}
+                        className="flex items-center space-x-1 px-3 py-1 rounded hover:bg-gray-100 text-gray-600"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        <span className="text-sm font-medium">Settings</span>
+                    </button>
                 </div>
             </div>
+
+            <EditChannelModal
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
+                channel={channel}
+                onChannelUpdated={(updatedChannel) => {
+                    onChannelUpdated(updatedChannel);
+                    setShowSettingsModal(false);
+                }}
+                onLeaveChannel={onLeaveChannel}
+            />
         </div>
     );
 }
@@ -75,10 +64,17 @@ ChannelInfoBar.propTypes = {
     channel: PropTypes.shape({
         id: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
-        description: PropTypes.string
+        description: PropTypes.string,
+        members: PropTypes.arrayOf(PropTypes.shape({
+            user: PropTypes.shape({
+                id: PropTypes.string.isRequired
+            }).isRequired,
+            role: PropTypes.string.isRequired
+        }))
     }).isRequired,
     onViewPinnedMessages: PropTypes.func.isRequired,
-    onLeaveChannel: PropTypes.func.isRequired
+    onLeaveChannel: PropTypes.func.isRequired,
+    onChannelUpdated: PropTypes.func.isRequired
 };
 
 export default ChannelInfoBar; 

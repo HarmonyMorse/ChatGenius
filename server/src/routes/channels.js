@@ -281,7 +281,14 @@ router.put('/:channelId', authenticateJWT, async (req, res) => {
             .from('channels')
             .update({ name, description, is_private })
             .eq('id', channelId)
-            .select()
+            .select(`
+                *,
+                members:channel_members(
+                    user:user_id(id, username, avatar_url),
+                    role
+                ),
+                creator:created_by(id, username)
+            `)
             .single();
 
         if (error) {

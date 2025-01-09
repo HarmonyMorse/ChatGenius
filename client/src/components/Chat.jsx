@@ -264,18 +264,11 @@ function Chat({ onLogout }) {
     useEffect(() => {
         const loadChannel = async () => {
             try {
-                const { data: channel, error } = await supabase
-                    .from('channels')
-                    .select('*')
-                    .eq('id', currentChannelId)
-                    .single();
-
-                if (error) {
-                    console.error('Error loading channel:', error);
-                    return;
+                if (currentChannelId) {
+                    const channel = await channelService.getChannel(currentChannelId);
+                    console.log('Loaded channel:', channel); // Add logging to debug
+                    setCurrentChannel(channel);
                 }
-
-                setCurrentChannel(channel);
             } catch (error) {
                 console.error('Error in channel loading:', error);
             }
@@ -389,6 +382,14 @@ function Chat({ onLogout }) {
         loadInitialData();
     }, []);
 
+    const handleChannelUpdate = (updatedChannel) => {
+        setCurrentChannel(updatedChannel);
+        // Update the channel in the channels list
+        setChannels(prev => prev.map(ch =>
+            ch.id === updatedChannel.id ? updatedChannel : ch
+        ));
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -432,6 +433,7 @@ function Chat({ onLogout }) {
                                     channel={currentChannel}
                                     onViewPinnedMessages={handleViewPinnedMessages}
                                     onLeaveChannel={handleLeaveChannel}
+                                    onChannelUpdated={handleChannelUpdate}
                                 />
                             )}
 
