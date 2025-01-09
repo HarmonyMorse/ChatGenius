@@ -28,7 +28,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
         loadReplies();
 
         // Subscribe to realtime updates for this thread
-        const channel = realtimeService.subscribeToThread(parentMessage.id, (event) => {
+        realtimeService.subscribeToThread(parentMessage.id, (event) => {
             switch (event.type) {
                 case 'new_message':
                     setReplies(prev => [...prev, { ...event.message, reactions: [] }]);
@@ -66,6 +66,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             const reply = {
                 content: newReply.trim(),
                 channel_id: parentMessage.channel_id,
+                dm_id: parentMessage.dm_id,
                 parent_id: parentMessage.id
             };
 
@@ -251,7 +252,8 @@ ThreadView.propTypes = {
     parentMessage: PropTypes.shape({
         id: PropTypes.string.isRequired,
         content: PropTypes.string.isRequired,
-        channel_id: PropTypes.string.isRequired,
+        channel_id: PropTypes.string,
+        dm_id: PropTypes.string,
         sender: PropTypes.shape({
             id: PropTypes.string.isRequired,
             username: PropTypes.string.isRequired,
