@@ -13,51 +13,51 @@ const s3Client = new S3Client({
 
 export const uploadFileToAws = async (fileName, filePath) => {
     try {
+        console.log('Starting S3 upload:', { fileName, filePath });
         const uploadParams = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName,
             Body: fs.createReadStream(filePath),
         };
 
-        await s3Client.send(new PutObjectCommand(uploadParams)).then((data) => {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath, (err) => {
-                    if (err) {
-                        console.error('Error deleting file after upload:', err);
-                    } else {
-                        console.log('File deleted successfully');
-                    }
-                });
-            }
-        });
+        const result = await s3Client.send(new PutObjectCommand(uploadParams));
+        console.log('S3 upload successful:', result);
+
+        // Clean up the local file
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Local file cleaned up:', filePath);
+        }
+
+        return result;
     } catch (error) {
         console.error('Error uploading file to AWS S3:', error);
+        // Clean up the local file in case of error
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+                console.log('Local file cleaned up after error:', filePath);
+            } catch (cleanupError) {
+                console.error('Error cleaning up local file:', cleanupError);
+            }
+        }
         throw error;
     }
 };
 
-export const getFileUrl = async (fileName, expireTime = null) => {
+export const getFileUrl = async (fileName, expireTime = 3600) => {
     try {
-        const check = await isFileAvailable(fileName);
+        console.log('Getting file URL for:', fileName);
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: fileName
+        });
 
-        if (!check) {
-            const command = new GetObjectCommand({
-                Bucket: process.env.AWS_S3_BUCKET,
-                Key: fileName
-            });
-
-            if (expireTime !== null) {
-                const url = await getSignedUrl(s3Client, command, {
-                    expiresIn: expireTime
-                });
-                return url;
-            } else {
-                const url = await getSignedUrl(s3Client, command);
-                return url;
-            }
-        } else {
-            return error;
-        }
+        const url = await getSignedUrl(s3Client, command, {
+            expiresIn: expireTime
+        });
+        console.log('Generated signed URL:', url);
+        return url;
     } catch (error) {
         console.error('Error getting file URL from AWS S3:', error);
         throw error;
@@ -66,27 +66,30 @@ export const getFileUrl = async (fileName, expireTime = null) => {
 
 export const isFileAvailable = async (fileName) => {
     try {
+        console.log('Checking if file exists:', fileName);
         await s3Client.send(new HeadObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName
         }));
         return true;
     } catch (error) {
+        console.error('Error checking file availability:', error);
         return false;
     }
 };
 
 export const deleteFile = async (fileName) => {
     try {
-        const uploadParams = {
+        console.log('Deleting file from S3:', fileName);
+        const deleteParams = {
             Bucket: process.env.AWS_S3_BUCKET,
             Key: fileName
         };
-        await s3Client.send(new DeleteObjectCommand(uploadParams)).then((data) => {
-            console.log('File deleted successfully');
-        });
+        const result = await s3Client.send(new DeleteObjectCommand(deleteParams));
+        console.log('File deleted successfully:', result);
+        return result;
     } catch (error) {
         console.error('Error deleting file from AWS S3:', error);
-        return 'error';
+        throw error;
     }
 };

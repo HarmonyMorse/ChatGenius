@@ -43,6 +43,12 @@ const upload = multer({
 // Ensure authentication before file upload
 router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
     try {
+        console.log('File upload request received:', {
+            file: req.file,
+            body: req.body,
+            user: req.user
+        });
+
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
@@ -52,16 +58,27 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
         }
 
         const { channelId, messageContent } = req.body;
+        if (!channelId) {
+            return res.status(400).json({ message: 'Channel ID is required' });
+        }
+
         const userId = req.user.id;
 
         // Upload file to S3
+        console.log('Uploading file to S3:', {
+            filename: req.file.filename,
+            path: req.file.path
+        });
+
         const s3Key = `files/${req.file.filename}`;
         await uploadFileToAws(s3Key, req.file.path);
 
         // Get the S3 URL
+        console.log('Getting S3 URL for file:', s3Key);
         const fileUrl = await getFileUrl(s3Key);
 
         // Save file metadata to database
+        console.log('Saving file metadata to database');
         const { data: file, error: fileError } = await supabase
             .from('files')
             .insert({
@@ -76,10 +93,11 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
 
         if (fileError) {
             console.error('Error saving file metadata:', fileError);
-            return res.status(500).json({ message: 'Error saving file metadata' });
+            return res.status(500).json({ message: 'Error saving file metadata', error: fileError });
         }
 
         // Create a message with the file
+        console.log('Creating message with file');
         const { data: message, error: messageError } = await supabase
             .from('messages')
             .insert({
@@ -91,19 +109,31 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
             .select(`
                 *,
                 sender:sender_id(id, username, avatar_url),
-                file:file_id(*)
+                file:files(id, name, type, size, url)
             `)
             .single();
 
         if (messageError) {
             console.error('Error creating message:', messageError);
-            return res.status(500).json({ message: 'Error creating message' });
+            return res.status(500).json({ message: 'Error creating message', error: messageError });
         }
 
+        console.log('File upload completed successfully');
         res.status(201).json(message);
     } catch (error) {
         console.error('Error in file upload:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        if (req.file && fs.existsSync(req.file.path)) {
+            try {
+                fs.unlinkSync(req.file.path);
+                console.log('Cleaned up temporary file:', req.file.path);
+            } catch (cleanupError) {
+                console.error('Error cleaning up temporary file:', cleanupError);
+            }
+        }
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message || error
+        });
     }
 });
 
