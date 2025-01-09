@@ -163,6 +163,64 @@ router.post('/:channelId/join', authenticateJWT, async (req, res) => {
     }
 });
 
+// Leave a channel
+router.post('/:channelId/leave', authenticateJWT, async (req, res) => {
+    try {
+        const { channelId } = req.params;
+        const userId = req.user.id;
+
+        // Check if channel exists
+        const { data: channel, error: channelError } = await supabase
+            .from('channels')
+            .select('*')
+            .eq('id', channelId)
+            .single();
+
+        if (channelError || !channel) {
+            return res.status(404).json({ message: 'Channel not found' });
+        }
+
+        // Check if user is a member
+        const { data: membership, error: membershipError } = await supabase
+            .from('channel_members')
+            .select('role')
+            .eq('channel_id', channelId)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (membershipError) {
+            console.error('Error checking membership:', membershipError);
+            return res.status(500).json({ message: 'Error checking channel membership' });
+        }
+
+        if (!membership) {
+            return res.status(400).json({ message: 'Not a member of this channel' });
+        }
+
+        // Don't allow channel owner to leave
+        if (membership.role === 'owner') {
+            return res.status(400).json({ message: 'Channel owner cannot leave the channel' });
+        }
+
+        // Remove user from channel
+        const { error: leaveError } = await supabase
+            .from('channel_members')
+            .delete()
+            .eq('channel_id', channelId)
+            .eq('user_id', userId);
+
+        if (leaveError) {
+            console.error('Error leaving channel:', leaveError);
+            return res.status(500).json({ message: 'Error leaving channel' });
+        }
+
+        res.status(200).json({ message: 'Successfully left channel' });
+    } catch (error) {
+        console.error('Error in channel leave:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 // Get a specific channel
 router.get('/:channelId', authenticateJWT, async (req, res) => {
     try {

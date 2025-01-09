@@ -16,6 +16,7 @@ import ThreadView from './ThreadView';
 import ChannelInfoBar from './ChannelInfoBar';
 import { supabase } from '../supabaseClient';
 import UserList from './UserList';
+import channelService from '../services/channelService';
 
 function Chat({ onLogout }) {
     const [messages, setMessages] = useState([]);
@@ -34,6 +35,7 @@ function Chat({ onLogout }) {
     const currentUser = getUser();
     const [selectedDMId, setSelectedDMId] = useState(null);
     const [dmParticipants, setDMParticipants] = useState([]);
+    const [channels, setChannels] = useState([]);
 
     const currentChannelId = !selectedDMId ? (searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064') : null;
 
@@ -324,6 +326,20 @@ function Chat({ onLogout }) {
         setShowPinnedMessages(show);
     };
 
+    const handleLeaveChannel = async () => {
+        try {
+            await channelService.leaveChannel(currentChannelId);
+            setCurrentChannel(null);
+            setSearchParams({});
+            setMessages([]);
+            // Trigger a refresh of the channel list
+            const updatedChannels = await channelService.getChannels();
+            setChannels(updatedChannels);
+        } catch (error) {
+            console.error('Error leaving channel:', error);
+        }
+    };
+
     useEffect(() => {
         if (selectedDMId) {
             const loadDMParticipants = async () => {
@@ -360,6 +376,19 @@ function Chat({ onLogout }) {
         setMessages([]); // Clear messages when switching
     };
 
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                const channelList = await channelService.getChannels();
+                setChannels(channelList);
+            } catch (error) {
+                console.error('Error loading channels:', error);
+            }
+        };
+
+        loadInitialData();
+    }, []);
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -371,6 +400,8 @@ function Chat({ onLogout }) {
                         <ChannelList
                             onChannelSelect={handleChannelSelect}
                             selectedChannelId={currentChannelId}
+                            channels={channels}
+                            setChannels={setChannels}
                         />
                         <DirectMessageList
                             onDMSelect={handleDMSelect}
@@ -399,8 +430,8 @@ function Chat({ onLogout }) {
                             {!selectedDMId && currentChannel && (
                                 <ChannelInfoBar
                                     channel={currentChannel}
-                                    showPinnedMessages={showPinnedMessages}
-                                    onTogglePinnedMessages={() => setShowPinnedMessages(!showPinnedMessages)}
+                                    onViewPinnedMessages={handleViewPinnedMessages}
+                                    onLeaveChannel={handleLeaveChannel}
                                 />
                             )}
 

@@ -34,6 +34,11 @@ class ChannelService {
         const response = await api.post(`/api/channels/${channelId}/join`);
         return response.data;
     }
+
+    async leaveChannel(channelId) {
+        const response = await api.post(`/api/channels/${channelId}/leave`);
+        return response.data;
+    }
 }
 
 const channelService = new ChannelService();

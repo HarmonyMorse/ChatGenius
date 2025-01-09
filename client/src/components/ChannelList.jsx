@@ -1,27 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import channelService from '../services/channelService';
 import CreateChannelModal from './CreateChannelModal';
 
-function ChannelList({ onChannelSelect, selectedChannelId }) {
-    const [channels, setChannels] = useState([]);
+function ChannelList({ onChannelSelect, selectedChannelId, channels, setChannels }) {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [showAddOptions, setShowAddOptions] = useState(false);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        loadChannels();
-    }, []);
-
-    const loadChannels = async () => {
-        try {
-            const channelList = await channelService.getChannels();
-            setChannels(channelList);
-        } catch (error) {
-            console.error('Error loading channels:', error);
-        }
-    };
 
     const handleChannelCreated = (channel) => {
         setChannels(prev => [...prev, channel]);
@@ -48,8 +33,7 @@ function ChannelList({ onChannelSelect, selectedChannelId }) {
                 <button
                     key={channel.id}
                     onClick={() => onChannelSelect(channel.id)}
-                    className={`w-full text-left px-2 py-1 rounded hover:bg-gray-200 ${selectedChannelId === channel.id ? 'bg-gray-200' : ''
-                        }`}
+                    className={`w-full text-left px-2 py-1 rounded hover:bg-gray-200 ${selectedChannelId === channel.id ? 'bg-gray-200' : ''}`}
                 >
                     # {channel.name}
                 </button>
@@ -99,7 +83,12 @@ function ChannelList({ onChannelSelect, selectedChannelId }) {
 
 ChannelList.propTypes = {
     onChannelSelect: PropTypes.func.isRequired,
-    selectedChannelId: PropTypes.string
+    selectedChannelId: PropTypes.string,
+    channels: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired
+    })).isRequired,
+    setChannels: PropTypes.func.isRequired
 };
 
 export default ChannelList;
