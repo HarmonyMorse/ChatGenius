@@ -15,7 +15,14 @@ const supabase = createClient(
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: (req, file, cb) => {
+        // Ensure uploads directory exists
+        const uploadDir = 'uploads';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);
+    },
     filename: (req, file, cb) => {
         const uniquePrefix = uuidv4();
         cb(null, uniquePrefix + '-' + file.originalname);
@@ -33,16 +40,15 @@ const upload = multer({
     }
 });
 
-// Ensure uploads directory exists
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
-
-// Upload file route
+// Ensure authentication before file upload
 router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'User not authenticated' });
         }
 
         const { channelId, messageContent } = req.body;

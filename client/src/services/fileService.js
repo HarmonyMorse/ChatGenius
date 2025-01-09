@@ -9,6 +9,10 @@ const uploadFile = async (file, channelId, messageContent = '') => {
     }
 
     const token = localStorage.getItem('token');
+    if (!token) {
+        throw new Error('No authentication token found');
+    }
+
     const response = await fetch(`${API_BASE_URL}/files/upload`, {
         method: 'POST',
         headers: {
@@ -19,8 +23,16 @@ const uploadFile = async (file, channelId, messageContent = '') => {
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error uploading file');
+        if (response.status === 401) {
+            throw new Error('Unauthorized: Please log in again');
+        }
+        const errorText = await response.text();
+        try {
+            const error = JSON.parse(errorText);
+            throw new Error(error.message || 'Error uploading file');
+        } catch (e) {
+            throw new Error(errorText || 'Error uploading file');
+        }
     }
 
     return response.json();
