@@ -381,236 +381,8 @@ function Chat({ onLogout }) {
                 </div>
 
                 {/* Main chat area */}
-                <div className={`flex-1 flex flex-col ${activeThread ? 'w-[calc(100%-40rem)]' : ''}`}>
-                    {/* Channel/DM info bar */}
-                    {currentChannel && !selectedDMId && (
-                        <ChannelInfoBar
-                            channel={currentChannel}
-                            onViewPinnedMessages={handleViewPinnedMessages}
-                        />
-                    )}
-                    {selectedDMId && dmParticipants.length > 0 && (
-                        <div className="bg-white border-b px-6 py-3">
-                            <div className="flex items-center">
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    {dmParticipants
-                                        .filter(p => p.id !== currentUser.id)
-                                        .map(p => p.username)
-                                        .join(', ')}
-                                </h2>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Messages area */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {showPinnedMessages ? (
-                            // Show pinned messages
-                            pinnedMessages.map((message) => (
-                                <div key={message.id} className="flex items-start space-x-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                                        {message.sender?.avatar_url && (
-                                            <img
-                                                src={message.sender.avatar_url}
-                                                alt="avatar"
-                                                className="w-8 h-8 rounded-full"
-                                            />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="font-semibold text-sm">
-                                                {message.sender?.username || 'Unknown User'}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(message.created_at).toLocaleTimeString()}
-                                            </span>
-                                            {message.is_edited && (
-                                                <span className="text-xs text-gray-400">(edited)</span>
-                                            )}
-                                            {message.pinned && (
-                                                <span className="text-xs text-yellow-600 flex items-center">
-                                                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" />
-                                                    </svg>
-                                                    Pinned
-                                                </span>
-                                            )}
-                                            {message.sender_id === currentUser.id && (
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => setEditingMessageId(message.id)}
-                                                        className="text-gray-400 hover:text-gray-600 text-sm"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteMessage(message.id)}
-                                                        className="text-red-400 hover:text-red-600 text-sm"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePinMessage(message.id)}
-                                                        className={`text-sm ${message.pinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-gray-400 hover:text-gray-600'}`}
-                                                    >
-                                                        {message.pinned ? 'Unpin' : 'Pin'}
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <button
-                                                onClick={() => setActiveThread(message)}
-                                                className="text-gray-400 hover:text-gray-600 text-sm flex items-center space-x-1"
-                                            >
-                                                <span>Reply</span>
-                                                {replyCounts[message.id] > 0 && (
-                                                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
-                                                        {replyCounts[message.id]}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </div>
-                                        {editingMessageId === message.id ? (
-                                            <EditMessageForm
-                                                message={message}
-                                                onSave={(content) => handleEditMessage(message.id, content)}
-                                                onCancel={() => setEditingMessageId(null)}
-                                            />
-                                        ) : (
-                                            <FormattedMessage content={message.content} />
-                                        )}
-                                        <MessageReactions
-                                            reactions={message.reactions}
-                                            onReact={handleReaction}
-                                            messageId={message.id}
-                                        />
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            // Show regular messages
-                            messages.filter(msg => !msg.parent_id).map((message) => (
-                                <div key={message.id} className="flex items-start space-x-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                                        {message.sender?.avatar_url && (
-                                            <img
-                                                src={message.sender.avatar_url}
-                                                alt="avatar"
-                                                className="w-8 h-8 rounded-full"
-                                            />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="font-semibold text-sm">
-                                                {message.sender?.username || 'Unknown User'}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(message.created_at).toLocaleTimeString()}
-                                            </span>
-                                            {message.is_edited && (
-                                                <span className="text-xs text-gray-400">(edited)</span>
-                                            )}
-                                            {message.pinned && (
-                                                <span className="text-xs text-yellow-600 flex items-center">
-                                                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" />
-                                                    </svg>
-                                                    Pinned
-                                                </span>
-                                            )}
-                                            {message.sender_id === currentUser.id && (
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => setEditingMessageId(message.id)}
-                                                        className="text-gray-400 hover:text-gray-600 text-sm"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteMessage(message.id)}
-                                                        className="text-red-400 hover:text-red-600 text-sm"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePinMessage(message.id)}
-                                                        className={`text-sm ${message.pinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-gray-400 hover:text-gray-600'}`}
-                                                    >
-                                                        {message.pinned ? 'Unpin' : 'Pin'}
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <button
-                                                onClick={() => setActiveThread(message)}
-                                                className="text-gray-400 hover:text-gray-600 text-sm flex items-center space-x-1"
-                                            >
-                                                <span>Reply</span>
-                                                {replyCounts[message.id] > 0 && (
-                                                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
-                                                        {replyCounts[message.id]}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </div>
-                                        {editingMessageId === message.id ? (
-                                            <EditMessageForm
-                                                message={message}
-                                                onSave={(content) => handleEditMessage(message.id, content)}
-                                                onCancel={() => setEditingMessageId(null)}
-                                            />
-                                        ) : (
-                                            <FormattedMessage content={message.content} />
-                                        )}
-                                        <MessageReactions
-                                            reactions={message.reactions}
-                                            onReact={handleReaction}
-                                            messageId={message.id}
-                                        />
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                        {typingUsers.length > 0 && (
-                            <div className="text-sm text-gray-500 italic">
-                                {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Message input */}
-                    <form onSubmit={handleSubmit} className="p-4 border-t">
-                        <div className="flex flex-col space-y-2">
-                            <div className="flex space-x-4">
-                                <input
-                                    type="text"
-                                    value={newMessage}
-                                    onChange={(e) => {
-                                        setNewMessage(e.target.value);
-                                        handleTyping();
-                                    }}
-                                    placeholder="Type a message... (supports Markdown formatting)"
-                                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newMessage.trim()}
-                                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                                >
-                                    Send
-                                </button>
-                            </div>
-                            <div className="flex justify-end">
-                                <FormattingGuide />
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                {/* Thread panel */}
-                {activeThread && (
-                    <div className="w-96 bg-white">
+                <div className="flex-1 flex">
+                    {activeThread ? (
                         <ThreadView
                             parentMessage={activeThread}
                             onClose={() => setActiveThread(null)}
@@ -621,8 +393,237 @@ function Chat({ onLogout }) {
                                 setActiveThread(prev => ({ ...prev, reactions }));
                             }}
                         />
-                    </div>
-                )}
+                    ) : (
+                        <div className="flex-1 flex flex-col">
+                            {/* Channel info bar */}
+                            {!selectedDMId && currentChannel && (
+                                <ChannelInfoBar
+                                    channel={currentChannel}
+                                    showPinnedMessages={showPinnedMessages}
+                                    onTogglePinnedMessages={() => setShowPinnedMessages(!showPinnedMessages)}
+                                />
+                            )}
+
+                            {selectedDMId && dmParticipants.length > 0 && (
+                                <div className="bg-white border-b px-6 py-3">
+                                    <div className="flex items-center">
+                                        <h2 className="text-lg font-semibold text-gray-900">
+                                            {dmParticipants
+                                                .filter(p => p.id !== currentUser.id)
+                                                .map(p => p.username)
+                                                .join(', ')}
+                                        </h2>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Messages area */}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {showPinnedMessages ? (
+                                    // Show pinned messages
+                                    pinnedMessages.map((message) => (
+                                        <div key={message.id} className="flex items-start space-x-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
+                                                {message.sender?.avatar_url && (
+                                                    <img
+                                                        src={message.sender.avatar_url}
+                                                        alt="avatar"
+                                                        className="w-8 h-8 rounded-full"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="font-semibold text-sm">
+                                                        {message.sender?.username || 'Unknown User'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {new Date(message.created_at).toLocaleTimeString()}
+                                                    </span>
+                                                    {message.is_edited && (
+                                                        <span className="text-xs text-gray-400">(edited)</span>
+                                                    )}
+                                                    {message.pinned && (
+                                                        <span className="text-xs text-yellow-600 flex items-center">
+                                                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" />
+                                                            </svg>
+                                                            Pinned
+                                                        </span>
+                                                    )}
+                                                    {message.sender_id === currentUser.id && (
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => setEditingMessageId(message.id)}
+                                                                className="text-gray-400 hover:text-gray-600 text-sm"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteMessage(message.id)}
+                                                                className="text-red-400 hover:text-red-600 text-sm"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handlePinMessage(message.id)}
+                                                                className={`text-sm ${message.pinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                {message.pinned ? 'Unpin' : 'Pin'}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => setActiveThread(message)}
+                                                        className="text-gray-400 hover:text-gray-600 text-sm flex items-center space-x-1"
+                                                    >
+                                                        <span>Reply</span>
+                                                        {replyCounts[message.id] > 0 && (
+                                                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                                                                {replyCounts[message.id]}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                {editingMessageId === message.id ? (
+                                                    <EditMessageForm
+                                                        message={message}
+                                                        onSave={(content) => handleEditMessage(message.id, content)}
+                                                        onCancel={() => setEditingMessageId(null)}
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage content={message.content} />
+                                                )}
+                                                <MessageReactions
+                                                    reactions={message.reactions}
+                                                    onReact={handleReaction}
+                                                    messageId={message.id}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    // Show regular messages
+                                    messages.filter(msg => !msg.parent_id).map((message) => (
+                                        <div key={message.id} className="flex items-start space-x-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
+                                                {message.sender?.avatar_url && (
+                                                    <img
+                                                        src={message.sender.avatar_url}
+                                                        alt="avatar"
+                                                        className="w-8 h-8 rounded-full"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="font-semibold text-sm">
+                                                        {message.sender?.username || 'Unknown User'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {new Date(message.created_at).toLocaleTimeString()}
+                                                    </span>
+                                                    {message.is_edited && (
+                                                        <span className="text-xs text-gray-400">(edited)</span>
+                                                    )}
+                                                    {message.pinned && (
+                                                        <span className="text-xs text-yellow-600 flex items-center">
+                                                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16a1 1 0 11-2 0V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 013 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L7 4.323V3a1 1 0 011-1h2z" />
+                                                            </svg>
+                                                            Pinned
+                                                        </span>
+                                                    )}
+                                                    {message.sender_id === currentUser.id && (
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => setEditingMessageId(message.id)}
+                                                                className="text-gray-400 hover:text-gray-600 text-sm"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteMessage(message.id)}
+                                                                className="text-red-400 hover:text-red-600 text-sm"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handlePinMessage(message.id)}
+                                                                className={`text-sm ${message.pinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                {message.pinned ? 'Unpin' : 'Pin'}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => setActiveThread(message)}
+                                                        className="text-gray-400 hover:text-gray-600 text-sm flex items-center space-x-1"
+                                                    >
+                                                        <span>Reply</span>
+                                                        {replyCounts[message.id] > 0 && (
+                                                            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
+                                                                {replyCounts[message.id]}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                {editingMessageId === message.id ? (
+                                                    <EditMessageForm
+                                                        message={message}
+                                                        onSave={(content) => handleEditMessage(message.id, content)}
+                                                        onCancel={() => setEditingMessageId(null)}
+                                                    />
+                                                ) : (
+                                                    <FormattedMessage content={message.content} />
+                                                )}
+                                                <MessageReactions
+                                                    reactions={message.reactions}
+                                                    onReact={handleReaction}
+                                                    messageId={message.id}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                                {typingUsers.length > 0 && (
+                                    <div className="text-sm text-gray-500 italic">
+                                        {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* Message input */}
+                            <form onSubmit={handleSubmit} className="p-4 border-t">
+                                <div className="flex flex-col space-y-2">
+                                    <div className="flex space-x-4">
+                                        <input
+                                            type="text"
+                                            value={newMessage}
+                                            onChange={(e) => {
+                                                setNewMessage(e.target.value);
+                                                handleTyping();
+                                            }}
+                                            placeholder="Type a message... (supports Markdown formatting)"
+                                            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!newMessage.trim()}
+                                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                        >
+                                            Send
+                                        </button>
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <FormattingGuide />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
