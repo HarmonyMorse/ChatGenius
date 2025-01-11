@@ -8,8 +8,10 @@ const supabase = createClient(
 class MessageService {
     constructor(io) {
         this.io = io;
-        this.setupSocketHandlers = this.setupSocketHandlers.bind(this);
-        this.setupRealtimeSubscription();
+        if (io) {
+            this.setupSocketHandlers = this.setupSocketHandlers.bind(this);
+            this.setupRealtimeSubscription();
+        }
     }
 
     setupRealtimeSubscription() {
@@ -42,6 +44,7 @@ class MessageService {
     }
 
     async saveMessage(message) {
+        console.log("Server: [saveMessage] Saving message:", message);
         const { data, error } = await supabase
             .from('messages')
             .insert({
@@ -49,21 +52,29 @@ class MessageService {
                 sender_id: message.sender_id,
                 channel_id: message.channel_id,
                 dm_id: message.dm_id,
-                parent_id: message.parent_id
+                type: message.type || 'user'
             })
             .select(`
                 *,
                 sender:sender_id(id, username, avatar_url)
             `)
-            .limit(1)
             .single();
 
         if (error) {
             console.error('Error saving message:', error);
             throw error;
         }
-
         return data;
+    }
+
+    async createSystemMessage(channelId, content) {
+        console.log("Server: [createSystemMessage] Creating system message for channel:", channelId);
+        return this.saveMessage({
+            content,
+            channel_id: channelId,
+            type: 'system',
+            sender_id: null
+        });
     }
 
     async getChannelMessages(channelId, limit = 50) {
@@ -134,4 +145,5 @@ class MessageService {
     }
 }
 
+// Export the class instead of an instance
 export default MessageService; 

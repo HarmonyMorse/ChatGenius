@@ -1,12 +1,16 @@
 import express from 'express';
 import { authenticateJWT } from '../middleware/auth.js';
 import { createClient } from '@supabase/supabase-js';
+import MessageService from '../services/messageService.js';
 
 const router = express.Router();
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
 );
+
+// Create a basic message service instance without Socket.IO for now
+const messageService = new MessageService();
 
 // Get all public channels
 router.get('/public', authenticateJWT, async (req, res) => {
@@ -41,9 +45,19 @@ router.get('/public', authenticateJWT, async (req, res) => {
 
 // Create a new channel
 router.post('/', authenticateJWT, async (req, res) => {
+    console.log("Server: [POST /api/channels] Request received");
+    console.log("Server: [POST /api/channels] Headers:", req.headers);
+    console.log("Server: [POST /api/channels] Body:", req.body);
+    console.log("Server: [POST /api/channels] User:", req.user);
+
     try {
         const { name, description, is_private = false } = req.body;
         const created_by = req.user.id;
+
+        if (!name) {
+            console.error("Server: [POST /api/channels] Name is required");
+            return res.status(400).json({ message: 'Channel name is required' });
+        }
 
         // First create the channel
         const { data: channel, error: channelError } = await supabase
@@ -59,11 +73,16 @@ router.post('/', authenticateJWT, async (req, res) => {
             .single();
 
         if (channelError) {
-            console.error('Error creating channel:', channelError);
-            return res.status(500).json({ message: 'Error creating channel' });
+            console.error('Server: [POST /api/channels] Error creating channel:', channelError);
+            return res.status(500).json({
+                message: 'Error creating channel',
+                error: channelError
+            });
         }
 
-        // Add the creator as a member with 'owner' role
+        console.log("Server: [POST /api/channels] Channel created successfully:", channel);
+
+        // Add the creator as a member with 'owner' role first
         const { error: memberError } = await supabase
             .from('channel_members')
             .insert({
@@ -73,14 +92,33 @@ router.post('/', authenticateJWT, async (req, res) => {
             });
 
         if (memberError) {
-            console.error('Error adding channel member:', memberError);
-            return res.status(500).json({ message: 'Error adding channel member' });
+            console.error('Server: [POST /api/channels] Error adding channel member:', memberError);
+            return res.status(500).json({
+                message: 'Error adding channel member',
+                error: memberError
+            });
+        }
+
+        // Then create the system message
+        try {
+            await messageService.saveMessage({
+                content: `${req.user.username || created_by} created '${name}' channel`,
+                channel_id: channel.id,
+                type: 'system',
+                sender_id: null
+            });
+        } catch (messageError) {
+            // Log the error but don't fail the channel creation
+            console.error('Server: [POST /api/channels] Error creating system message:', messageError);
         }
 
         res.status(201).json(channel);
     } catch (error) {
-        console.error('Error in channel creation:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Server: [POST /api/channels] Unexpected error:', error);
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        });
     }
 });
 
