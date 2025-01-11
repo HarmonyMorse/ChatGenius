@@ -47,11 +47,21 @@ class RealtimeService {
                                 .select('id, username, avatar_url')
                                 .eq('id', messageWithSender.sender_id)
                                 .limit(1)
-                                .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
+
+                            // If message has a file_id, fetch the file data
+                            if (messageWithSender.file_id) {
+                                const { data: file } = await supabase
+                                    .from('files')
+                                    .select('id, name, type, size, url')
+                                    .eq('id', messageWithSender.file_id)
+                                    .limit(1)
+                                    .single();
+                                messageWithSender = { ...messageWithSender, file };
+                            }
                         } catch (error) {
-                            console.error('Error fetching sender:', error);
+                            console.error('Error fetching sender or file:', error);
                         }
                     }
                     switch (payload.eventType) {
@@ -90,8 +100,19 @@ class RealtimeService {
                                 .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
+
+                            // If message has a file_id, fetch the file data
+                            if (messageWithSender.file_id) {
+                                const { data: file } = await supabase
+                                    .from('files')
+                                    .select('id, name, type, size, url')
+                                    .eq('id', messageWithSender.file_id)
+                                    .limit(1)
+                                    .single();
+                                messageWithSender = { ...messageWithSender, file };
+                            }
                         } catch (error) {
-                            console.error('Error fetching sender:', error);
+                            console.error('Error fetching sender or file:', error);
                         }
                     }
                     switch (payload.eventType) {
@@ -177,8 +198,19 @@ class RealtimeService {
                                 .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
+
+                            // If message has a file_id, fetch the file data
+                            if (messageWithSender.file_id) {
+                                const { data: file } = await supabase
+                                    .from('files')
+                                    .select('id, name, type, size, url')
+                                    .eq('id', messageWithSender.file_id)
+                                    .limit(1)
+                                    .single();
+                                messageWithSender = { ...messageWithSender, file };
+                            }
                         } catch (error) {
-                            console.error('Error fetching sender:', error);
+                            console.error('Error fetching sender or file:', error);
                         }
                     }
                     switch (payload.eventType) {
