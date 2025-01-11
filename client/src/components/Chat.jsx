@@ -619,6 +619,15 @@ function Chat({ onLogout }) {
                                                         {message.is_edited && (
                                                             <span className="text-xs text-gray-400">(edited)</span>
                                                         )}
+                                                        {message.sender?.id === currentUser.id && (
+                                                            <button
+                                                                onClick={() => handleDeleteMessage(message.id)}
+                                                                className="text-xs text-red-500 hover:text-red-700"
+                                                                title="Delete message"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
                                                     </div>
                                                     {editingMessageId === message.id ? (
                                                         <EditMessageForm

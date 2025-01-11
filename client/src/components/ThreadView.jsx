@@ -9,13 +9,16 @@ import EditMessageForm from './EditMessageForm';
 import reactionService from '../services/reactionService';
 
 function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
-    const [replies, setReplies] = useState([]);
     const [newReply, setNewReply] = useState('');
-    const [editingMessageId, setEditingMessageId] = useState(null);
     const [typingUsers, setTypingUsers] = useState([]);
+    const [replies, setReplies] = useState([]);
+    const [editingMessageId, setEditingMessageId] = useState(null);
     const repliesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
-    const typingChannelRef = useRef(null);
+    const typingChannelRef = useRef({
+        thread: `thread:${parentMessage.id}`,
+        parent: parentMessage.dm_id ? `dm:${parentMessage.dm_id}` : `channel:${parentMessage.channel_id}`
+    });
     const currentUser = getUser();
 
     useEffect(() => {
@@ -149,7 +152,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
         }
     };
 
-    const handleDeleteMessage = async (messageId) => {
+    const handleDeleteReply = async (messageId) => {
         if (!window.confirm('Are you sure you want to delete this reply?')) {
             return;
         }
@@ -251,21 +254,14 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                                     {reply.is_edited && (
                                         <span className="text-xs text-gray-400">(edited)</span>
                                     )}
-                                    {reply.sender_id === currentUser.id && (
-                                        <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={() => setEditingMessageId(reply.id)}
-                                                className="text-gray-400 hover:text-gray-600 text-sm"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteMessage(reply.id)}
-                                                className="text-red-400 hover:text-red-600 text-sm"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
+                                    {reply.sender?.id === currentUser.id && (
+                                        <button
+                                            onClick={() => handleDeleteReply(reply.id)}
+                                            className="text-xs text-red-500 hover:text-red-700"
+                                            title="Delete reply"
+                                        >
+                                            Delete
+                                        </button>
                                     )}
                                 </div>
                                 {editingMessageId === reply.id ? (
