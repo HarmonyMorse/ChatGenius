@@ -1,9 +1,9 @@
 import { supabase } from '../supabaseClient';
 
 class SearchService {
-    async searchMessages(query) {
+    async searchMessages(query, { includeSystem = true, includeFiles = true } = {}) {
         try {
-            const { data, error } = await supabase
+            let queryBuilder = supabase
                 .from('messages')
                 .select(`
                     *,
@@ -18,11 +18,27 @@ class SearchService {
                     ),
                     dm:dm_id (
                         id
+                    ),
+                    file:file_id (
+                        id,
+                        name,
+                        type,
+                        size,
+                        url
                     )
                 `)
                 .ilike('content', `%${query}%`)
-                .order('created_at', { ascending: false })
-                .limit(20);
+                .order('created_at', { ascending: false });
+
+            // Apply filters
+            if (!includeSystem) {
+                queryBuilder = queryBuilder.eq('type', 'user');
+            }
+            if (!includeFiles) {
+                queryBuilder = queryBuilder.is('file_id', null);
+            }
+
+            const { data, error } = await queryBuilder.limit(20);
 
             if (error) throw error;
             return data;

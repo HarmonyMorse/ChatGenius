@@ -15,6 +15,8 @@ function SearchModal({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const currentUser = getUser();
+    const [includeSystem, setIncludeSystem] = useState(true);
+    const [includeFiles, setIncludeFiles] = useState(true);
 
     useEffect(() => {
         if (searchQuery.trim().length >= 2) {
@@ -22,7 +24,7 @@ function SearchModal({ isOpen, onClose }) {
         } else {
             setResults([]);
         }
-    }, [searchQuery, searchType]);
+    }, [searchQuery, searchType, includeSystem, includeFiles]);
 
     const performSearch = async () => {
         setIsLoading(true);
@@ -30,7 +32,10 @@ function SearchModal({ isOpen, onClose }) {
             let searchResults;
             switch (searchType) {
                 case 'messages':
-                    searchResults = await searchService.searchMessages(searchQuery);
+                    searchResults = await searchService.searchMessages(searchQuery, {
+                        includeSystem,
+                        includeFiles
+                    });
                     break;
                 case 'channels':
                     searchResults = await searchService.searchChannels(searchQuery);
@@ -160,8 +165,32 @@ function SearchModal({ isOpen, onClose }) {
                                                     in #{message.channel.name}
                                                 </span>
                                             )}
+                                            {message.type === 'system' && (
+                                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                                    System
+                                                </span>
+                                            )}
                                         </div>
                                         <p className="text-gray-800 mt-1">{message.content}</p>
+                                        {message.file && (
+                                            <div className="mt-2 flex items-center space-x-2 text-sm text-gray-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                </svg>
+                                                <a
+                                                    href={message.file.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {message.file.name}
+                                                </a>
+                                                <span className="text-gray-400">
+                                                    ({(message.file.size / 1024).toFixed(1)} KB)
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -297,6 +326,30 @@ function SearchModal({ isOpen, onClose }) {
                             Users
                         </button>
                     </div>
+
+                    {/* Message Search Filters */}
+                    {searchType === 'messages' && (
+                        <div className="flex space-x-4 mb-4">
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={includeSystem}
+                                    onChange={(e) => setIncludeSystem(e.target.checked)}
+                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">Include system messages</span>
+                            </label>
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={includeFiles}
+                                    onChange={(e) => setIncludeFiles(e.target.checked)}
+                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">Include files</span>
+                            </label>
+                        </div>
+                    )}
 
                     {/* Results Area */}
                     <div className="max-h-96 overflow-y-auto">
