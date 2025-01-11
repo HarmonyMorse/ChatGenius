@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Auth from './pages/Auth';
 import Chat from './components/Chat';
 import BrowseChannels from './pages/BrowseChannels';
-import { getToken } from './services/auth';
+import { getToken, logout } from './services/auth';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,6 +14,7 @@ function App() {
   }, []);
 
   const handleLogout = () => {
+    logout();
     setIsAuthenticated(false);
   };
 
