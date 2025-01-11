@@ -21,6 +21,8 @@ function CreateChannelModal({ isOpen, onClose, onChannelCreated }) {
                 is_private: isPrivate
             };
 
+            console.log("Client: [handleSubmit] Creating channel with data:", channelData);
+
             const channel = await channelService.createChannel(channelData);
             onChannelCreated(channel);
             onClose();
@@ -30,6 +32,7 @@ function CreateChannelModal({ isOpen, onClose, onChannelCreated }) {
             setDescription('');
             setIsPrivate(false);
         } catch (error) {
+            console.error("Client: [handleSubmit] Error creating channel:", error);
             setError(error.response?.data?.message || 'Error creating channel');
         } finally {
             setIsLoading(false);
