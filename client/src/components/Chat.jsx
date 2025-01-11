@@ -419,7 +419,7 @@ function Chat({ onLogout }) {
 
     const handleDMSelect = (dmId) => {
         setSelectedDMId(dmId);
-        setSearchParams({});  // Clear channel from URL
+        setSearchParams({ dm: dmId });  // Update URL to reflect DM selection
         setMessages([]); // Clear messages when switching
     };
 
@@ -465,6 +465,67 @@ function Chat({ onLogout }) {
             console.error('Error uploading file:', error);
         }
     };
+
+    useEffect(() => {
+        // Get DM ID from URL if present
+        const dmId = searchParams.get('dm');
+        if (dmId) {
+            handleDMSelect(dmId);
+        }
+
+        // Get user ID from URL if present (for starting new DM)
+        const userId = searchParams.get('user');
+        if (userId) {
+            const startNewDM = async () => {
+                try {
+                    // Create a new DM
+                    const { data: dm, error: dmError } = await supabase
+                        .from('direct_messages')
+                        .insert({})
+                        .select()
+                        .limit(1)
+                        .single();
+
+                    if (dmError) {
+                        console.error('Error creating DM:', dmError);
+                        return;
+                    }
+
+                    // Add both users to the DM
+                    const members = [
+                        { dm_id: dm.id, user_id: currentUser.id },
+                        { dm_id: dm.id, user_id: userId }
+                    ];
+
+                    const { error: membersError } = await supabase
+                        .from('direct_message_members')
+                        .insert(members);
+
+                    if (membersError) {
+                        console.error('Error adding DM members:', membersError);
+                        return;
+                    }
+
+                    // Send system message about DM creation
+                    const systemMessage = {
+                        content: 'A Direct Message has been created',
+                        dm_id: dm.id,
+                        is_system_message: true
+                    };
+
+                    await messageService.sendMessage(systemMessage);
+
+                    // Navigate to the new DM
+                    handleDMSelect(dm.id);
+                    setSearchParams({ dm: dm.id });
+                } catch (error) {
+                    console.error('Error in DM creation:', error);
+                }
+            };
+
+            startNewDM();
+        }
+    }, [searchParams]);
 
     return (
         <div className="min-h-screen bg-white">

@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import searchService from '../services/searchService';
 import { formatDistanceToNow } from 'date-fns';
+import channelService from '../services/channelService';
+import { supabase } from '../supabaseClient';
+import { getUser } from '../services/auth';
 
 function SearchModal({ isOpen, onClose }) {
     const [searchType, setSearchType] = useState('messages');
     const [searchQuery, setSearchQuery] = useState('');
     const [results, setResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentUser = getUser();
 
     useEffect(() => {
         if (searchQuery.trim().length >= 2) {
@@ -50,6 +57,55 @@ function SearchModal({ isOpen, onClose }) {
         }
     };
 
+    const handleMessageClick = async (message) => {
+        if (message.channel_id) {
+            // Check if user is already a member of the channel
+            try {
+                const { data: membership, error: membershipError } = await supabase
+                    .from('channel_members')
+                    .select('channel_id')
+                    .eq('channel_id', message.channel_id)
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (membershipError && !membershipError.message.includes('No rows found')) {
+                    console.error('Error checking channel membership:', membershipError);
+                    return;
+                }
+
+                // Only try to join if not already a member
+                if (!membership) {
+                    await channelService.joinChannel(message.channel_id);
+                }
+                setSearchParams({ channel: message.channel_id });
+            } catch (error) {
+                console.error('Error handling channel navigation:', error);
+                return;
+            }
+        } else if (message.dm_id) {
+            setSearchParams({});
+            // The Chat component will handle DM selection through its state
+            navigate(`/chat?dm=${message.dm_id}`);
+        }
+        onClose();
+    };
+
+    const handleChannelClick = async (channel) => {
+        try {
+            await channelService.joinChannel(channel.id);
+            setSearchParams({ channel: channel.id });
+            onClose();
+        } catch (error) {
+            console.error('Error joining channel:', error);
+        }
+    };
+
+    const handleUserClick = (user) => {
+        // Navigate to DM with user
+        navigate(`/chat?user=${user.id}`);
+        onClose();
+    };
+
     const renderResults = () => {
         if (isLoading) {
             return (
@@ -80,7 +136,11 @@ function SearchModal({ isOpen, onClose }) {
                 return (
                     <div className="space-y-4">
                         {results.map((message) => (
-                            <div key={message.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                            <div
+                                key={message.id}
+                                className="p-4 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={() => handleMessageClick(message)}
+                            >
                                 <div className="flex items-start space-x-3">
                                     <img
                                         src={message.sender?.avatar_url || '/default-avatar.png'}
@@ -113,7 +173,11 @@ function SearchModal({ isOpen, onClose }) {
                 return (
                     <div className="space-y-2">
                         {results.map((channel) => (
-                            <div key={channel.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                            <div
+                                key={channel.id}
+                                className="p-4 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={() => handleChannelClick(channel)}
+                            >
                                 <div className="flex items-center space-x-3">
                                     <span className="text-gray-400 text-xl">#</span>
                                     <div className="flex-1">
@@ -132,7 +196,11 @@ function SearchModal({ isOpen, onClose }) {
                 return (
                     <div className="space-y-2">
                         {results.map((user) => (
-                            <div key={user.id} className="p-4 hover:bg-gray-50 rounded-lg">
+                            <div
+                                key={user.id}
+                                className="p-4 hover:bg-gray-50 rounded-lg cursor-pointer"
+                                onClick={() => handleUserClick(user)}
+                            >
                                 <div className="flex items-center space-x-3">
                                     <img
                                         src={user.avatar_url || '/default-avatar.png'}
