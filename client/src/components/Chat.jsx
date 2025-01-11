@@ -255,11 +255,7 @@ function Chat({ onLogout }) {
 
     const handleEditMessage = async (messageId, newContent) => {
         try {
-            const updatedMessage = await messageService.editMessage(messageId, newContent);
-            setMessages(prev => prev.map(msg =>
-                msg.id === messageId ? { ...updatedMessage, reactions: msg.reactions } : msg
-            ));
-            setEditingMessageId(null);
+            await messageService.editMessage(messageId, newContent);
         } catch (error) {
             console.error('Error editing message:', error);
         }
@@ -639,7 +635,7 @@ function Chat({ onLogout }) {
                                                             />
                                                         ) : (
                                                             <>
-                                                                <FormattedMessage content={message.content} file={message.file} />
+                                                                <FormattedMessage content={message.content} file={message.file} message={message} onEdit={handleEditMessage} />
                                                                 <div className="flex items-center space-x-4 mt-1">
                                                                     <MessageReactions
                                                                         reactions={message.reactions}

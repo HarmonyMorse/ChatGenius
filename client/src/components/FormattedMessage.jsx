@@ -1,11 +1,35 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
+import { getUser } from '../services/auth';
 import FileDisplay from './FileDisplay';
+import EditMessageForm from './EditMessageForm';
 
-function FormattedMessage({ content, file }) {
+function FormattedMessage({ content, file, message, onEdit }) {
+    const [isEditing, setIsEditing] = useState(false);
+    const currentUser = getUser();
+    const isOwner = currentUser.id === message.sender.id;
+
+    const handleEdit = () => {
+        setIsEditing(true);
+    };
+
+    const handleSave = async (newContent) => {
+        await onEdit(message.id, newContent);
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+    };
+
+    if (isEditing) {
+        return <EditMessageForm message={message} onSave={handleSave} onCancel={handleCancel} />;
+    }
+
     return (
-        <div>
+        <div className="group relative">
             <div className="prose prose-sm max-w-none">
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
@@ -38,6 +62,16 @@ function FormattedMessage({ content, file }) {
                 </ReactMarkdown>
             </div>
             {file && <FileDisplay file={file} />}
+            {isOwner && (
+                <button
+                    onClick={handleEdit}
+                    className="absolute right-2 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500 hover:text-gray-700"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </button>
+            )}
         </div>
     );
 }
@@ -49,7 +83,15 @@ FormattedMessage.propTypes = {
         type: PropTypes.string.isRequired,
         size: PropTypes.number.isRequired,
         url: PropTypes.string.isRequired
-    })
+    }),
+    message: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        content: PropTypes.string.isRequired,
+        sender: PropTypes.shape({
+            id: PropTypes.string.isRequired
+        }).isRequired
+    }).isRequired,
+    onEdit: PropTypes.func.isRequired
 };
 
 export default FormattedMessage;
