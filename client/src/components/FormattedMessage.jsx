@@ -52,4 +52,4 @@ FormattedMessage.propTypes = {
     })
 };
 
-export default FormattedMessage; 
+export default FormattedMessage;

@@ -13,6 +13,20 @@ function FileDisplay({ file }) {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const DownloadButton = () => (
+        <a
+            href={file.url}
+            download={file.name}
+            className="inline-flex items-center space-x-2 px-3 py-1 mt-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            <span>Download</span>
+            <span>({formatFileSize(file.size)})</span>
+        </a>
+    );
+
     if (isImage) {
         return (
             <div className="mt-2">
@@ -21,8 +35,9 @@ function FileDisplay({ file }) {
                     alt={file.name}
                     className="max-w-md rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 />
-                <div className="text-sm text-gray-500 mt-1">
-                    {file.name} ({formatFileSize(file.size)})
+                <div className="flex flex-col">
+                    <div className="text-sm text-gray-500 mt-1">{file.name}</div>
+                    <DownloadButton />
                 </div>
             </div>
         );
@@ -38,8 +53,9 @@ function FileDisplay({ file }) {
                     <source src={file.url} type={file.type} />
                     Your browser does not support the video tag.
                 </video>
-                <div className="text-sm text-gray-500 mt-1">
-                    {file.name} ({formatFileSize(file.size)})
+                <div className="flex flex-col">
+                    <div className="text-sm text-gray-500 mt-1">{file.name}</div>
+                    <DownloadButton />
                 </div>
             </div>
         );
@@ -52,8 +68,9 @@ function FileDisplay({ file }) {
                     <source src={file.url} type={file.type} />
                     Your browser does not support the audio tag.
                 </audio>
-                <div className="text-sm text-gray-500 mt-1">
-                    {file.name} ({formatFileSize(file.size)})
+                <div className="flex flex-col">
+                    <div className="text-sm text-gray-500 mt-1">{file.name}</div>
+                    <DownloadButton />
                 </div>
             </div>
         );

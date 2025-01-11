@@ -98,7 +98,8 @@ router.get('/channel/:channelId', authenticateJWT, async (req, res) => {
             .from('messages')
             .select(`
                 *,
-                sender:sender_id(id, username, avatar_url)
+                sender:sender_id(id, username, avatar_url),
+                file:file_id(id, name, type, size, url)
             `)
             .eq('channel_id', channelId)
             .order('created_at', { ascending: true })
@@ -223,7 +224,8 @@ router.get('/thread/:parentId', authenticateJWT, async (req, res) => {
             .from('messages')
             .select(`
                 *,
-                sender:sender_id(id, username, avatar_url)
+                sender:sender_id(id, username, avatar_url),
+                file:file_id(id, name, type, size, url)
             `)
             .eq('parent_id', parentId)
             .order('created_at', { ascending: true });
@@ -356,7 +358,7 @@ router.get('/dm/:dmId', authenticateJWT, async (req, res) => {
         const { dmId } = req.params;
         const userId = req.user.id;
 
-        // First check if the user is a member of this DM
+        // First verify the user is a member of this DM
         const { data: membership, error: membershipError } = await supabase
             .from('direct_message_members')
             .select('dm_id')
@@ -368,25 +370,24 @@ router.get('/dm/:dmId', authenticateJWT, async (req, res) => {
             return res.status(403).json({ message: 'Not authorized to view this DM' });
         }
 
-        // Get messages for this DM
-        const { data: messages, error: messagesError } = await supabase
+        const { data: messages, error } = await supabase
             .from('messages')
             .select(`
                 *,
-                sender:sender_id(id, username, avatar_url)
+                sender:sender_id(id, username, avatar_url),
+                file:file_id(id, name, type, size, url)
             `)
             .eq('dm_id', dmId)
-            .is('parent_id', null)  // Only get top-level messages, not replies
             .order('created_at', { ascending: true });
 
-        if (messagesError) {
-            console.error('Error fetching DM messages:', messagesError);
-            return res.status(500).json({ message: 'Error fetching DM messages' });
+        if (error) {
+            console.error('Error fetching DM messages:', error);
+            return res.status(500).json({ message: 'Error fetching messages' });
         }
 
         res.json(messages);
     } catch (error) {
-        console.error('Error in DM messages retrieval:', error);
+        console.error('Error in DM message retrieval:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
