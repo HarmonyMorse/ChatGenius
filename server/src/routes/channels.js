@@ -55,6 +55,7 @@ router.post('/', authenticateJWT, async (req, res) => {
                 created_by
             })
             .select()
+            .limit(1)
             .single();
 
         if (channelError) {
@@ -120,6 +121,7 @@ router.post('/:channelId/join', authenticateJWT, async (req, res) => {
             .from('channels')
             .select('*')
             .eq('id', channelId)
+            .limit(1)
             .single();
 
         if (channelError || !channel) {
@@ -136,6 +138,7 @@ router.post('/:channelId/join', authenticateJWT, async (req, res) => {
             .select('*')
             .eq('channel_id', channelId)
             .eq('user_id', userId)
+            .limit(1)
             .single();
 
         if (existingMember) {
@@ -174,6 +177,7 @@ router.post('/:channelId/leave', authenticateJWT, async (req, res) => {
             .from('channels')
             .select('*')
             .eq('id', channelId)
+            .limit(1)
             .single();
 
         if (channelError || !channel) {
@@ -186,7 +190,7 @@ router.post('/:channelId/leave', authenticateJWT, async (req, res) => {
             .select('role')
             .eq('channel_id', channelId)
             .eq('user_id', userId)
-            .maybeSingle();
+            .maybe.limit(1).single();;
 
         if (membershipError) {
             console.error('Error checking membership:', membershipError);
@@ -238,6 +242,7 @@ router.get('/:channelId', authenticateJWT, async (req, res) => {
                 creator:created_by(id, username)
             `)
             .eq('id', channelId)
+            .limit(1)
             .single();
 
         if (error) {
@@ -270,6 +275,7 @@ router.put('/:channelId', authenticateJWT, async (req, res) => {
             .select('role')
             .eq('channel_id', channelId)
             .eq('user_id', req.user.id)
+            .limit(1)
             .single();
 
         if (membershipError || membership.role !== 'owner') {
@@ -282,6 +288,7 @@ router.put('/:channelId', authenticateJWT, async (req, res) => {
             .update({ name, description, is_private })
             .eq('id', channelId)
             .select()
+            .limit(1)
             .single();
 
         if (error) {
@@ -307,6 +314,7 @@ router.delete('/:channelId', authenticateJWT, async (req, res) => {
             .select('role')
             .eq('channel_id', channelId)
             .eq('user_id', req.user.id)
+            .limit(1)
             .single();
 
         if (membershipError || membership.role !== 'owner') {

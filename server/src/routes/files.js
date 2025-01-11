@@ -89,6 +89,7 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
                 uploader_id: userId
             })
             .select()
+            .limit(1)
             .single();
 
         if (fileError) {
@@ -111,6 +112,7 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
                 sender:sender_id(id, username, avatar_url),
                 file:files(id, name, type, size, url)
             `)
+            .limit(1)
             .single();
 
         if (messageError) {

@@ -25,7 +25,8 @@ class UserService {
             .from('users')
             .select('id, status')
             .eq('id', userId)
-            .single();
+            .limit(1).
+            single();
 
         if (error) throw error;
         return data;

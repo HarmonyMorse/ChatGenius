@@ -270,6 +270,7 @@ function Chat({ onLogout }) {
                     .from('channels')
                     .select('*')
                     .eq('id', currentChannelId)
+                    .limit(1)
                     .single();
 
                 if (error) {

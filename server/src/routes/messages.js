@@ -26,6 +26,7 @@ router.post('/', authenticateJWT, async (req, res) => {
                 .select('dm_id')
                 .eq('dm_id', dm_id)
                 .eq('user_id', sender_id)
+                .limit(1)
                 .single();
 
             if (membershipError || !membership) {
@@ -38,6 +39,7 @@ router.post('/', authenticateJWT, async (req, res) => {
             .from('users')
             .select('id, username, avatar_url')
             .eq('id', sender_id)
+            .limit(1)
             .single();
 
         if (senderError) {
@@ -68,6 +70,7 @@ router.post('/', authenticateJWT, async (req, res) => {
                 *,
                 sender:sender_id(id, username, avatar_url)
             `)
+            .limit(1)
             .single();
 
         if (messageError) {
@@ -129,6 +132,7 @@ router.put('/:messageId', authenticateJWT, async (req, res) => {
             .from('messages')
             .select('sender_id')
             .eq('id', messageId)
+            .limit(1)
             .single();
 
         if (messageError) {
@@ -157,6 +161,7 @@ router.put('/:messageId', authenticateJWT, async (req, res) => {
                 *,
                 sender:sender_id(id, username, avatar_url)
             `)
+            .limit(1)
             .single();
 
         if (updateError) {
@@ -182,6 +187,7 @@ router.delete('/:messageId', authenticateJWT, async (req, res) => {
             .from('messages')
             .select('sender_id')
             .eq('id', messageId)
+            .limit(1)
             .single();
 
         if (messageError) {
@@ -275,6 +281,7 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
             .from('messages')
             .select('id, channel_id')
             .eq('id', messageId)
+            .limit(1)
             .single();
 
         if (messageError) {
@@ -291,6 +298,7 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
             .from('pinned_messages')
             .select('*')
             .eq('message_id', messageId)
+            .limit(1)
             .single();
 
         if (pinnedError && pinnedError.code !== 'PGRST116') { // PGRST116 is "not found" error
@@ -321,6 +329,7 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
                     pinned_by: userId
                 })
                 .select()
+                .limit(1)
                 .single();
 
             if (insertError) {
@@ -338,6 +347,7 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
                 sender:sender_id(id, username, avatar_url)
             `)
             .eq('id', messageId)
+            .limit(1)
             .single();
 
         if (fullMessageError) {
@@ -364,6 +374,7 @@ router.get('/dm/:dmId', authenticateJWT, async (req, res) => {
             .select('dm_id')
             .eq('dm_id', dmId)
             .eq('user_id', userId)
+            .limit(1)
             .single();
 
         if (membershipError || !membership) {

@@ -44,6 +44,7 @@ router.post('/register', async (req, res) => {
                 status: 'offline'
             })
             .select()
+            .limit(1)
             .single();
 
         if (error) {

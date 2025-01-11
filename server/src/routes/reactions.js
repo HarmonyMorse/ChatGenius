@@ -22,6 +22,7 @@ router.post('/:messageId', authenticateJWT, async (req, res) => {
             .eq('message_id', messageId)
             .eq('user_id', userId)
             .eq('emoji', emoji)
+            .limit(1)
             .single();
 
         if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"

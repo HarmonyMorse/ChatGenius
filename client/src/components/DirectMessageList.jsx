@@ -131,6 +131,7 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 .from('direct_messages')
                 .insert({})
                 .select()
+                .limit(1)
                 .single();
 
             if (dmError) {

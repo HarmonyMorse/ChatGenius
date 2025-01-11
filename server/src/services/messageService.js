@@ -55,6 +55,7 @@ class MessageService {
                 *,
                 sender:sender_id(id, username, avatar_url)
             `)
+            .limit(1)
             .single();
 
         if (error) {

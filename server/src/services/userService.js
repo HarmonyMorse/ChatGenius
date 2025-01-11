@@ -37,6 +37,7 @@ class UserService {
                 .from('users')
                 .select()
                 .eq('id', id)
+                .limit(1)
                 .single();
 
             if (existingUser) {
@@ -56,6 +57,7 @@ class UserService {
                     status: 'active'
                 }])
                 .select()
+                .limit(1)
                 .single();
 
             if (error) {
@@ -85,6 +87,7 @@ class UserService {
             .update(updates)
             .eq('id', id)
             .select()
+            .limit(1)
             .single();
 
         if (error) {

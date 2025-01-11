@@ -18,6 +18,7 @@ router.get('/:userId', authenticateJWT, async (req, res) => {
             .from('users')
             .select('id, username, avatar_url')
             .eq('id', userId)
+            .limit(1)
             .single();
 
         if (error) {

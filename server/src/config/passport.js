@@ -25,6 +25,8 @@ passport.use(new LocalStrategy(
                 .from('users')
                 .select('*')
                 .eq('email', email)
+                .limit(1)
+                .limit(1)
                 .single();
 
             if (error || !user) {
@@ -56,6 +58,7 @@ passport.use(new JwtStrategy(
                 .from('users')
                 .select('*')
                 .eq('id', jwt_payload.id)
+                .limit(1)
                 .single();
 
             if (error || !user) {
