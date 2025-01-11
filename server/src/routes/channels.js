@@ -197,6 +197,19 @@ router.post('/:channelId/join', authenticateJWT, async (req, res) => {
             return res.status(500).json({ message: 'Error joining channel' });
         }
 
+        // Create system message for user joining
+        try {
+            await messageService.saveMessage({
+                content: `${req.user.username || userId} joined the channel`,
+                channel_id: channelId,
+                type: 'system',
+                sender_id: null
+            });
+        } catch (messageError) {
+            // Log the error but don't fail the join operation
+            console.error('Error creating system message for join:', messageError);
+        }
+
         res.status(200).json({ message: 'Successfully joined channel' });
     } catch (error) {
         console.error('Error in channel join:', error);
