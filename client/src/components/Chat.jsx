@@ -41,11 +41,31 @@ function Chat({ onLogout }) {
 
     const currentChannelId = !selectedDMId ? searchParams.get('channel') : null;
 
+    useEffect(() => {
+        const loadChannels = async () => {
+            try {
+                const userChannels = await channelService.getChannels();
+                setChannels(userChannels);
+
+                if (!searchParams.get('channel') && userChannels.length > 0) {
+                    setSearchParams({ channel: userChannels[0].id });
+                }
+            } catch (error) {
+                console.error('Error loading channels:', error);
+            }
+        };
+
+        loadChannels();
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
+        // Only proceed if we have a valid channel ID or DM ID
+        if (!selectedDMId && !currentChannelId) return;
+
         // Subscribe to realtime messages
         const channelOrDM = selectedDMId || currentChannelId;
         realtimeService.subscribeToChannel(channelOrDM, (event) => {
@@ -387,22 +407,17 @@ function Chat({ onLogout }) {
     };
 
     useEffect(() => {
-        const loadChannels = async () => {
+        const loadInitialData = async () => {
             try {
-                const userChannels = await channelService.getChannels();
-                setChannels(userChannels);
-
-                // If no channel is selected and we have channels, select the first one
-                if (!searchParams.get('channel') && userChannels.length > 0) {
-                    setSearchParams({ channel: userChannels[0].id });
-                }
+                const channelList = await channelService.getChannels();
+                setChannels(channelList);
             } catch (error) {
                 console.error('Error loading channels:', error);
             }
         };
 
-        loadChannels();
-    }, []); // Only run once on component mount
+        loadInitialData();
+    }, []);
 
     const handleChannelUpdate = (updatedChannel) => {
         setCurrentChannel(updatedChannel);
