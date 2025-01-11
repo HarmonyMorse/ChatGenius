@@ -233,7 +233,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                                 {new Date(parentMessage.created_at).toLocaleTimeString()}
                             </span>
                         </div>
-                        <FormattedMessage content={parentMessage.content} />
+                        <FormattedMessage content={parentMessage.content} message={parentMessage} onEdit={handleEditMessage} />
                         <MessageReactions
                             reactions={parentMessage.reactions}
                             onReact={handleReaction}
@@ -285,7 +285,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                                         onCancel={() => setEditingMessageId(null)}
                                     />
                                 ) : (
-                                    <FormattedMessage content={reply.content} />
+                                    <FormattedMessage content={reply.content} message={reply} onEdit={handleEditMessage} />
                                 )}
                                 <MessageReactions
                                     reactions={reply.reactions}

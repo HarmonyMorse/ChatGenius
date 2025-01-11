@@ -9,7 +9,7 @@ import EditMessageForm from './EditMessageForm';
 function FormattedMessage({ content, file, message, onEdit }) {
     const [isEditing, setIsEditing] = useState(false);
     const currentUser = getUser();
-    const isOwner = currentUser.id === message.sender.id;
+    const isOwner = message && currentUser.id === message.sender.id;
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -62,15 +62,18 @@ function FormattedMessage({ content, file, message, onEdit }) {
                 </ReactMarkdown>
             </div>
             {file && <FileDisplay file={file} />}
-            {isOwner && (
-                <button
-                    onClick={handleEdit}
-                    className="absolute right-2 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500 hover:text-gray-700"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                </button>
+            {isOwner && onEdit && (
+                <div className="mt-1 flex items-center space-x-2">
+                    <button
+                        onClick={handleEdit}
+                        className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>Edit</span>
+                    </button>
+                </div>
             )}
         </div>
     );
@@ -78,20 +81,14 @@ function FormattedMessage({ content, file, message, onEdit }) {
 
 FormattedMessage.propTypes = {
     content: PropTypes.string.isRequired,
-    file: PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        type: PropTypes.string.isRequired,
-        size: PropTypes.number.isRequired,
-        url: PropTypes.string.isRequired
-    }),
+    file: PropTypes.object,
     message: PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        content: PropTypes.string.isRequired,
+        id: PropTypes.string,
         sender: PropTypes.shape({
-            id: PropTypes.string.isRequired
-        }).isRequired
-    }).isRequired,
-    onEdit: PropTypes.func.isRequired
+            id: PropTypes.string
+        })
+    }),
+    onEdit: PropTypes.func
 };
 
 export default FormattedMessage;
