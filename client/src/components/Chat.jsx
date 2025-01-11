@@ -39,7 +39,7 @@ function Chat({ onLogout }) {
     const [channels, setChannels] = useState([]);
     const fileInputRef = useRef(null);
 
-    const currentChannelId = !selectedDMId ? (searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064') : null;
+    const currentChannelId = !selectedDMId ? searchParams.get('channel') : null;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -387,17 +387,22 @@ function Chat({ onLogout }) {
     };
 
     useEffect(() => {
-        const loadInitialData = async () => {
+        const loadChannels = async () => {
             try {
-                const channelList = await channelService.getChannels();
-                setChannels(channelList);
+                const userChannels = await channelService.getChannels();
+                setChannels(userChannels);
+
+                // If no channel is selected and we have channels, select the first one
+                if (!searchParams.get('channel') && userChannels.length > 0) {
+                    setSearchParams({ channel: userChannels[0].id });
+                }
             } catch (error) {
                 console.error('Error loading channels:', error);
             }
         };
 
-        loadInitialData();
-    }, []);
+        loadChannels();
+    }, []); // Only run once on component mount
 
     const handleChannelUpdate = (updatedChannel) => {
         setCurrentChannel(updatedChannel);
