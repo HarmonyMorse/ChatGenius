@@ -161,6 +161,7 @@ router.put('/:messageId', authenticateJWT, async (req, res) => {
                 *,
                 sender:sender_id(id, username, avatar_url)
             `)
+            .order('created_at', { ascending: true })
             .limit(1)
             .single();
 
