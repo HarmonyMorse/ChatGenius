@@ -590,64 +590,83 @@ function Chat({ onLogout }) {
 
                             {/* Messages area */}
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {messages.map((message) => (
-                                    <div key={message.id} className={message.type === 'system' ? systemMessageStyles.container : 'flex items-start space-x-3'}>
-                                        {message.type === 'system' ? (
-                                            <div className={systemMessageStyles.content}>
-                                                <span className={systemMessageStyles.label}>System</span>
-                                                <span>{message.content}</span>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                                                    {message.sender?.avatar_url && (
-                                                        <img
-                                                            src={message.sender.avatar_url}
-                                                            alt="avatar"
-                                                            className="w-8 h-8 rounded-full"
-                                                        />
-                                                    )}
+                                {messages
+                                    .filter(message => !message.parent_id) // Only show messages that are not replies
+                                    .map((message) => (
+                                        <div key={message.id} className={message.type === 'system' ? systemMessageStyles.container : 'flex items-start space-x-3'}>
+                                            {message.type === 'system' ? (
+                                                <div className={systemMessageStyles.content}>
+                                                    <span className={systemMessageStyles.label}>System</span>
+                                                    <span>{message.content}</span>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="font-semibold text-sm">
-                                                            {message.sender?.username || 'Unknown User'}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500">
-                                                            {new Date(message.created_at).toLocaleTimeString()}
-                                                        </span>
-                                                        {message.is_edited && (
-                                                            <span className="text-xs text-gray-400">(edited)</span>
-                                                        )}
-                                                        {message.sender?.id === currentUser.id && (
-                                                            <button
-                                                                onClick={() => handleDeleteMessage(message.id)}
-                                                                className="text-xs text-red-500 hover:text-red-700"
-                                                                title="Delete message"
-                                                            >
-                                                                Delete
-                                                            </button>
+                                            ) : (
+                                                <>
+                                                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
+                                                        {message.sender?.avatar_url && (
+                                                            <img
+                                                                src={message.sender.avatar_url}
+                                                                alt="avatar"
+                                                                className="w-8 h-8 rounded-full"
+                                                            />
                                                         )}
                                                     </div>
-                                                    {editingMessageId === message.id ? (
-                                                        <EditMessageForm
-                                                            message={message}
-                                                            onSave={(content) => handleEditMessage(message.id, content)}
-                                                            onCancel={() => setEditingMessageId(null)}
-                                                        />
-                                                    ) : (
-                                                        <FormattedMessage content={message.content} file={message.file} />
-                                                    )}
-                                                    <MessageReactions
-                                                        reactions={message.reactions}
-                                                        onReact={handleReaction}
-                                                        messageId={message.id}
-                                                    />
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="font-semibold text-sm">
+                                                                {message.sender?.username || 'Unknown User'}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500">
+                                                                {new Date(message.created_at).toLocaleTimeString()}
+                                                            </span>
+                                                            {message.is_edited && (
+                                                                <span className="text-xs text-gray-400">(edited)</span>
+                                                            )}
+                                                            {message.sender?.id === currentUser.id && (
+                                                                <button
+                                                                    onClick={() => handleDeleteMessage(message.id)}
+                                                                    className="text-xs text-red-500 hover:text-red-700"
+                                                                    title="Delete message"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {editingMessageId === message.id ? (
+                                                            <EditMessageForm
+                                                                message={message}
+                                                                onSave={(content) => handleEditMessage(message.id, content)}
+                                                                onCancel={() => setEditingMessageId(null)}
+                                                            />
+                                                        ) : (
+                                                            <>
+                                                                <FormattedMessage content={message.content} file={message.file} />
+                                                                <div className="flex items-center space-x-4 mt-1">
+                                                                    <MessageReactions
+                                                                        reactions={message.reactions}
+                                                                        onReact={handleReaction}
+                                                                        messageId={message.id}
+                                                                    />
+                                                                    {!message.parent_id && (
+                                                                        <button
+                                                                            onClick={() => setActiveThread(message)}
+                                                                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                                                <path fillRule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                            </svg>
+                                                                            <span>
+                                                                                {replyCounts[message.id] ? `${replyCounts[message.id]} ${replyCounts[message.id] === 1 ? 'reply' : 'replies'}` : 'Reply'}
+                                                                            </span>
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
                                 {typingUsers.length > 0 && (
                                     <div className="text-sm text-gray-500 italic">
                                         {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
