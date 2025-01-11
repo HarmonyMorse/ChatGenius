@@ -290,7 +290,13 @@ function Chat({ onLogout }) {
             try {
                 const { data: channels, error } = await supabase
                     .from('channels')
-                    .select('*')
+                    .select(`
+                        *,
+                        creator:created_by(
+                            id,
+                            username
+                        )
+                    `)
                     .eq('id', currentChannelId)
                     .limit(1);
 
@@ -300,7 +306,12 @@ function Chat({ onLogout }) {
                 }
 
                 if (channels && channels.length > 0) {
-                    setCurrentChannel(channels[0]);
+                    // Ensure created_by is set correctly
+                    const channel = {
+                        ...channels[0],
+                        created_by: channels[0].creator.id
+                    };
+                    setCurrentChannel(channel);
                 } else {
                     console.log('No channel found with ID:', currentChannelId);
                     setCurrentChannel(null);
@@ -427,6 +438,15 @@ function Chat({ onLogout }) {
         ));
     };
 
+    const handleChannelDelete = () => {
+        // Clear current channel
+        setCurrentChannel(null);
+        setSearchParams({});
+        setMessages([]);
+        // Remove the channel from the channels list
+        setChannels(prev => prev.filter(ch => ch.id !== currentChannel.id));
+    };
+
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -484,6 +504,7 @@ function Chat({ onLogout }) {
                                     onViewPinnedMessages={handleViewPinnedMessages}
                                     onLeaveChannel={handleLeaveChannel}
                                     onChannelUpdated={handleChannelUpdate}
+                                    onDeleteChannel={handleChannelDelete}
                                 />
                             )}
 

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import EditChannelModal from './EditChannelModal';
 
-function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel, onChannelUpdated }) {
+function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel, onChannelUpdated, onDeleteChannel }) {
     const [showPinnedMessages, setShowPinnedMessages] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -55,6 +55,7 @@ function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel, onChann
                     setShowSettingsModal(false);
                 }}
                 onLeaveChannel={onLeaveChannel}
+                onDeleteChannel={onDeleteChannel}
             />
         </div>
     );
@@ -65,16 +66,12 @@ ChannelInfoBar.propTypes = {
         id: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
         description: PropTypes.string,
-        members: PropTypes.arrayOf(PropTypes.shape({
-            user: PropTypes.shape({
-                id: PropTypes.string.isRequired
-            }).isRequired,
-            role: PropTypes.string.isRequired
-        }))
+        created_by: PropTypes.string.isRequired
     }).isRequired,
     onViewPinnedMessages: PropTypes.func.isRequired,
     onLeaveChannel: PropTypes.func.isRequired,
-    onChannelUpdated: PropTypes.func.isRequired
+    onChannelUpdated: PropTypes.func.isRequired,
+    onDeleteChannel: PropTypes.func.isRequired
 };
 
 export default ChannelInfoBar; 

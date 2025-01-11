@@ -3,16 +3,14 @@ import PropTypes from 'prop-types';
 import channelService from '../services/channelService';
 import { getUser } from '../services/auth';
 
-function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveChannel }) {
+function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveChannel, onDeleteChannel }) {
     const [name, setName] = useState(channel?.name || '');
     const [description, setDescription] = useState(channel?.description || '');
     const [isPrivate, setIsPrivate] = useState(channel?.is_private || false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const currentUser = getUser();
-    const isOwner = channel?.members?.some(member =>
-        member.user.id === currentUser.id && member.role === 'owner'
-    );
+    const isCreator = channel?.created_by === currentUser.id;
 
     // Update local state when channel prop changes
     useEffect(() => {
@@ -25,6 +23,11 @@ function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveC
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!isCreator) {
+            setError('Only the channel creator can edit the channel');
+            return;
+        }
+
         setError('');
         setIsLoading(true);
 
@@ -52,6 +55,25 @@ function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveC
         }
     };
 
+    const handleDeleteChannel = async () => {
+        if (!isCreator) {
+            setError('Only the channel creator can delete the channel');
+            return;
+        }
+
+        if (window.confirm('Are you sure you want to delete this channel? This action cannot be undone.')) {
+            setIsLoading(true);
+            try {
+                await channelService.deleteChannel(channel.id);
+                onDeleteChannel();
+                onClose();
+            } catch (error) {
+                setError(error.response?.data?.message || 'Error deleting channel');
+                setIsLoading(false);
+            }
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -59,7 +81,7 @@ function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveC
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
                 <div className="p-6">
                     <h2 className="text-xl font-semibold mb-4">Channel Settings</h2>
-                    {isOwner ? (
+                    {isCreator ? (
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4">
                                 <div>
@@ -112,13 +134,24 @@ function EditChannelModal({ isOpen, onClose, channel, onChannelUpdated, onLeaveC
                             </div>
 
                             <div className="mt-6 flex justify-between">
-                                <button
-                                    type="button"
-                                    onClick={handleLeaveChannel}
-                                    className="px-4 py-2 border border-red-300 text-red-600 rounded-md shadow-sm text-sm font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                >
-                                    Leave Channel
-                                </button>
+                                <div className="flex space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteChannel}
+                                        className="px-4 py-2 border border-red-300 text-red-600 rounded-md shadow-sm text-sm font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        disabled={isLoading}
+                                    >
+                                        Delete Channel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleLeaveChannel}
+                                        className="px-4 py-2 border border-yellow-300 text-yellow-600 rounded-md shadow-sm text-sm font-medium hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                                        disabled={isLoading}
+                                    >
+                                        Leave Channel
+                                    </button>
+                                </div>
                                 <div className="flex space-x-3">
                                     <button
                                         type="button"
@@ -184,15 +217,11 @@ EditChannelModal.propTypes = {
         name: PropTypes.string.isRequired,
         description: PropTypes.string,
         is_private: PropTypes.bool,
-        members: PropTypes.arrayOf(PropTypes.shape({
-            user: PropTypes.shape({
-                id: PropTypes.string.isRequired
-            }).isRequired,
-            role: PropTypes.string.isRequired
-        }))
+        created_by: PropTypes.string.isRequired
     }),
     onChannelUpdated: PropTypes.func.isRequired,
-    onLeaveChannel: PropTypes.func.isRequired
+    onLeaveChannel: PropTypes.func.isRequired,
+    onDeleteChannel: PropTypes.func.isRequired
 };
 
 export default EditChannelModal; 
