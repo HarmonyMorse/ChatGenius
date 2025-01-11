@@ -268,35 +268,54 @@ router.put('/:channelId', authenticateJWT, async (req, res) => {
     try {
         const { channelId } = req.params;
         const { name, description, is_private } = req.body;
+        const userId = req.user.id;
 
-        // Check if user is channel owner
-        const { data: membership, error: membershipError } = await supabase
-            .from('channel_members')
-            .select('role')
-            .eq('channel_id', channelId)
-            .eq('user_id', req.user.id)
-            .limit(1)
+        // Check if user is the creator of the channel
+        const { data: channel, error: channelError } = await supabase
+            .from('channels')
+            .select('created_by')
+            .eq('id', channelId)
             .single();
 
-        if (membershipError || membership.role !== 'owner') {
-            return res.status(403).json({ message: 'Only channel owner can update channel' });
+        if (channelError) {
+            console.error('Error fetching channel:', channelError);
+            return res.status(500).json({ message: 'Error fetching channel' });
         }
 
-        // Update channel
-        const { data: channel, error } = await supabase
+        if (!channel) {
+            return res.status(404).json({ message: 'Channel not found' });
+        }
+
+        if (channel.created_by !== userId) {
+            return res.status(403).json({ message: 'Only the channel creator can update the channel' });
+        }
+
+        // Update the channel
+        const { data: updatedChannel, error: updateError } = await supabase
             .from('channels')
-            .update({ name, description, is_private })
+            .update({
+                name,
+                description,
+                is_private,
+                updated_at: new Date().toISOString()
+            })
             .eq('id', channelId)
-            .select()
-            .limit(1)
+            .select(`
+                *,
+                creator:created_by(
+                    id,
+                    username
+                )
+            `)
+            .order('created_at', { ascending: true })
             .single();
 
-        if (error) {
-            console.error('Error updating channel:', error);
+        if (updateError) {
+            console.error('Error updating channel:', updateError);
             return res.status(500).json({ message: 'Error updating channel' });
         }
 
-        res.json(channel);
+        res.json(updatedChannel);
     } catch (error) {
         console.error('Error in channel update:', error);
         res.status(500).json({ message: 'Internal server error' });
