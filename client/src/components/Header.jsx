@@ -4,7 +4,7 @@ import { getUser } from '../services/auth';
 import userService from '../services/userService';
 import SearchModal from './SearchModal';
 
-function Header({ onLogout }) {
+function Header({ onLogout = () => { } }) {
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [showSearchModal, setShowSearchModal] = useState(false);
     const [currentStatus, setCurrentStatus] = useState('offline');
@@ -394,10 +394,6 @@ function Header({ onLogout }) {
 
 Header.propTypes = {
     onLogout: PropTypes.func
-};
-
-Header.defaultProps = {
-    onLogout: () => { }
 };
 
 export default Header; 
