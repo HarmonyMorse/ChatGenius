@@ -265,22 +265,29 @@ function Chat({ onLogout }) {
 
     useEffect(() => {
         const loadChannel = async () => {
+            if (!currentChannelId) return;
+
             try {
-                const { data: channel, error } = await supabase
+                const { data: channels, error } = await supabase
                     .from('channels')
                     .select('*')
                     .eq('id', currentChannelId)
-                    .limit(1)
-                    .single();
+                    .limit(1);
 
                 if (error) {
                     console.error('Error loading channel:', error);
                     return;
                 }
 
-                setCurrentChannel(channel);
+                if (channels && channels.length > 0) {
+                    setCurrentChannel(channels[0]);
+                } else {
+                    console.log('No channel found with ID:', currentChannelId);
+                    setCurrentChannel(null);
+                }
             } catch (error) {
                 console.error('Error in channel loading:', error);
+                setCurrentChannel(null);
             }
         };
 

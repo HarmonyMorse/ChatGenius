@@ -1,10 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../supabaseClient';
 import reactionService from './reactionService';
-
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 class RealtimeService {
     constructor() {
@@ -51,6 +46,8 @@ class RealtimeService {
                                 .from('users')
                                 .select('id, username, avatar_url')
                                 .eq('id', messageWithSender.sender_id)
+                                .limit(1)
+                                .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
                         } catch (error) {
@@ -90,6 +87,7 @@ class RealtimeService {
                                 .from('users')
                                 .select('id, username, avatar_url')
                                 .eq('id', messageWithSender.sender_id)
+                                .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
                         } catch (error) {
@@ -134,10 +132,22 @@ class RealtimeService {
                         console.error('Error fetching updated reactions:', error);
                     }
                 }
-            )
-            .subscribe((status) => {
-                console.log(`Realtime subscription status for channel/DM ${channelId}:`, status);
-            });
+            );
+
+        // Subscribe to the channel
+        channel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log(`Subscribed to channel: messages:${channelId}`);
+            }
+            if (status === 'CLOSED') {
+                console.log(`Channel closed: messages:${channelId}`);
+                this.channels.delete(channelId);
+            }
+            if (status === 'CHANNEL_ERROR') {
+                console.error(`Channel error for messages:${channelId}`);
+                this.channels.delete(channelId);
+            }
+        });
 
         // Store the subscription
         this.channels.set(channelId, channel);
@@ -164,6 +174,7 @@ class RealtimeService {
                                 .from('users')
                                 .select('id, username, avatar_url')
                                 .eq('id', messageWithSender.sender_id)
+                                .limit(1)
                                 .single();
                             messageWithSender = { ...messageWithSender, sender };
                         } catch (error) {
@@ -278,5 +289,4 @@ class RealtimeService {
     }
 }
 
-const realtimeService = new RealtimeService();
-export default realtimeService; 
+export default new RealtimeService(); 
