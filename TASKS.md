@@ -81,15 +81,14 @@
        > Implemented message deletion with a confirmation dialog to prevent accidental deletions. Updated local state to reflect message removal in the chat interface.
      - [x] Create message formatting options
        > Implemented message formatting using Markdown with `react-markdown`, allowing users to format messages with links, lists, and other Markdown features.
-   - [ ] Advanced message features
-     - [ ] Implement message search
+   - [x] Advanced message features
+     - [x] Implement message search
      - [x] Add message reactions
        > Implemented message reactions with Supabase Realtime, allowing users to add/remove emoji reactions that update in real-time across all clients. Created MessageReactions component with reaction picker and counter.
      - [x] Create message threading
        > Added message threading functionality, allowing users to view and reply to message threads in a side column. Threads update in real-time with new replies.
      - [x] Enable message pinning
        > Added message pinning functionality with dedicated pinned messages view, real-time updates, and proper UI indicators.
-     - [ ] Any user in a channel can pin a message
 
 ## Phase 3: User Features
 1. User Management Implementation
@@ -122,28 +121,27 @@
      - [ ] Implement last seen tracking
      - [x] Add custom status updates
        > Added ability to set custom status messages with color selection and HEX input
-     - [ ] Create user profile endpoints
    - [ ] User presence system
-     - [ ] Implement online/offline detection using Supabase Presence
+     - [X] Implement online/offline detection
      - [x] Add custom status updates
        > Added status color customization with preset colors and HEX input
      - [ ] Create user profile system
-     - [ ] Add user search functionality
+     - [x] Add user search functionality
 
 ## Phase 4: Enhanced Features
 1. File Sharing
-   - [ ] Set up AWS S3 for file storage
-   - [ ] Implement file upload/download
+   - [x] Set up AWS S3 for file storage
+   - [x] Implement file upload/download
    - [ ] Add file preview functionality
    - [ ] Create file search feature
 
 2. Engagement Features
    - [ ] Message organization
      - [ ] Create message bookmarking
-     - [ ] Add message pinning functionality
+     - [x] Add message pinning functionality
      - [ ] Implement message categories
    - [ ] User engagement
-     - [ ] Add emoji reactions
+     - [x] Add emoji reactions
      - [ ] Create user mentions
      - [ ] Add channel notifications
 
@@ -156,10 +154,8 @@
 
 ## Phase 6: Deployment & Polish
 1. Deployment Setup
-   - [ ] Configure AWS services
-   - [ ] Set up Vercel deployment
-   - [ ] Implement CI/CD pipeline
-   - [ ] Configure environment variables
+   - [x] Configure AWS services
+   - [x] Configure environment variables
 
 2. Final Polish
    - [ ] Perform security audit
