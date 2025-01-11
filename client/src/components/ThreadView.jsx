@@ -45,7 +45,14 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                     ));
                     break;
                 case 'message_deleted':
-                    setReplies(prev => prev.filter(msg => msg.id !== event.messageId));
+                    setReplies(prev => {
+                        const newReplies = prev.filter(msg => msg.id !== event.messageId);
+                        // Only auto-close if there were replies before and now there are none
+                        if (prev.length > 0 && newReplies.length === 0) {
+                            onClose();
+                        }
+                        return newReplies;
+                    });
                     break;
                 case 'reactions_updated':
                     setReplies(prev => prev.map(msg =>
@@ -159,7 +166,14 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
 
         try {
             await messageService.deleteMessage(messageId);
-            setReplies(prev => prev.filter(msg => msg.id !== messageId));
+            setReplies(prev => {
+                const newReplies = prev.filter(msg => msg.id !== messageId);
+                // Only auto-close if there were replies before and now there are none
+                if (prev.length > 0 && newReplies.length === 0) {
+                    onClose();
+                }
+                return newReplies;
+            });
         } catch (error) {
             console.error('Error deleting reply:', error);
         }
