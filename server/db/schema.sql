@@ -83,6 +83,17 @@ CREATE TABLE direct_message_members (
     PRIMARY KEY (dm_id, user_id)
 );
 
+-- Files Table
+CREATE TABLE files (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    uploader_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Messages Table
 CREATE TABLE messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -93,13 +104,18 @@ CREATE TABLE messages (
     parent_id UUID REFERENCES messages(id) ON DELETE CASCADE,
     file_id UUID REFERENCES files(id) ON DELETE SET NULL,
     is_edited BOOLEAN DEFAULT false,
-    is_system_message BOOLEAN DEFAULT false,
+    type VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (type IN ('user', 'system')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     content_tsv tsvector GENERATED ALWAYS AS (to_tsvector('message_search', content || ' ' || regexp_replace(content, '\w+', ' \0', 'g'))) STORED,
     CHECK (
         (channel_id IS NOT NULL AND dm_id IS NULL) OR
         (channel_id IS NULL AND dm_id IS NOT NULL)
+    ),
+    -- Add constraint to ensure system messages don't have a sender
+    CHECK (
+        (type = 'user' AND sender_id IS NOT NULL) OR
+        (type = 'system' AND sender_id IS NULL)
     )
 );
 
@@ -120,17 +136,6 @@ CREATE TABLE message_reactions (
     emoji TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     PRIMARY KEY (message_id, user_id, emoji)
-);
-
--- Files Table
-CREATE TABLE files (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,
-    type TEXT NOT NULL,
-    size INTEGER NOT NULL,
-    url TEXT NOT NULL,
-    uploader_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- User Settings Table
