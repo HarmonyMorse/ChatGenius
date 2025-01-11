@@ -91,6 +91,7 @@ CREATE TABLE messages (
     channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
     dm_id UUID REFERENCES direct_messages(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES messages(id) ON DELETE CASCADE,
+    file_id UUID REFERENCES files(id) ON DELETE SET NULL,
     is_edited BOOLEAN DEFAULT false,
     is_system_message BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -128,7 +129,6 @@ CREATE TABLE files (
     type TEXT NOT NULL,
     size INTEGER NOT NULL,
     url TEXT NOT NULL,
-    message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
     uploader_id UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

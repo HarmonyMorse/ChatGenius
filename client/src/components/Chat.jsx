@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import messageService from '../services/messageService';
 import realtimeService from '../services/realtimeService';
 import reactionService from '../services/reactionService';
+import fileService from '../services/fileService';
 import { getUser } from '../services/auth';
 import ChannelList from './ChannelList';
 import DirectMessageList from './DirectMessageList';
@@ -36,6 +37,7 @@ function Chat({ onLogout }) {
     const [selectedDMId, setSelectedDMId] = useState(null);
     const [dmParticipants, setDMParticipants] = useState([]);
     const [channels, setChannels] = useState([]);
+    const fileInputRef = useRef(null);
 
     const currentChannelId = !selectedDMId ? (searchParams.get('channel') || '680dca5c-885f-4e21-930f-3c93ad6dc064') : null;
 
@@ -397,6 +399,19 @@ function Chat({ onLogout }) {
         ));
     };
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            await fileService.uploadFile(file, currentChannelId);
+            // The message will be added through the realtime subscription
+            event.target.value = ''; // Reset file input
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header onLogout={onLogout} />
@@ -532,7 +547,7 @@ function Chat({ onLogout }) {
                                                         onCancel={() => setEditingMessageId(null)}
                                                     />
                                                 ) : (
-                                                    <FormattedMessage content={message.content} />
+                                                    <FormattedMessage content={message.content} file={message.file} />
                                                 )}
                                                 <MessageReactions
                                                     reactions={message.reactions}
@@ -615,7 +630,7 @@ function Chat({ onLogout }) {
                                                         onCancel={() => setEditingMessageId(null)}
                                                     />
                                                 ) : (
-                                                    <FormattedMessage content={message.content} />
+                                                    <FormattedMessage content={message.content} file={message.file} />
                                                 )}
                                                 <MessageReactions
                                                     reactions={message.reactions}
@@ -648,6 +663,21 @@ function Chat({ onLogout }) {
                                             placeholder="Type a message... (supports Markdown formatting)"
                                             className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
                                         <button
                                             type="submit"
                                             disabled={!newMessage.trim()}

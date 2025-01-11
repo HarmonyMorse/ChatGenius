@@ -7,6 +7,7 @@ import messageRoutes from './routes/messages.js';
 import channelRoutes from './routes/channels.js';
 import userRoutes from './routes/users.js';
 import reactionRoutes from './routes/reactions.js';
+import fileRoutes from './routes/files.js';
 import { authenticateJWT } from './middleware/auth.js';
 
 dotenv.config();
@@ -14,10 +15,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS configuration
+const corsOptions = {
+    origin: 'http://localhost:5173', // Vite's default port
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
 // Middleware
-app.use(cors({
-    origin: process.env.CLIENT_URL,
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(passport.initialize());
 
@@ -27,6 +34,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reactions', reactionRoutes);
+app.use('/api/files', fileRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticateJWT, (req, res) => {
