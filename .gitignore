@@ -1,1 +1,8 @@
 /scripts
+
+# AWS files
+AWSCLIV2.pkg
+*.pem
+
+# Environment files
+server/.env.server
