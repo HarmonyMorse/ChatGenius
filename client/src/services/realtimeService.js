@@ -180,58 +180,91 @@ class RealtimeService {
             .channel(`thread:${parentId}`)
             .on('postgres_changes',
                 {
-                    event: '*',
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    console.log('Thread message delete event:', payload);
+                    onMessage({
+                        type: 'message_deleted',
+                        messageId: payload.old.id
+                    });
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: 'INSERT',
                     schema: 'public',
                     table: 'messages',
                     filter: `parent_id=eq.${parentId}`
                 },
                 async (payload) => {
-                    console.log('Thread realtime event:', payload.eventType, payload);
-                    // Get sender information if not included
+                    console.log('Thread message insert event:', payload);
                     let messageWithSender = payload.new;
-                    if (payload.eventType !== 'DELETE' && !payload.new.sender) {
-                        try {
-                            const { data: sender } = await supabase
-                                .from('users')
-                                .select('id, username, avatar_url')
-                                .eq('id', messageWithSender.sender_id)
+                    try {
+                        const { data: sender } = await supabase
+                            .from('users')
+                            .select('id, username, avatar_url')
+                            .eq('id', messageWithSender.sender_id)
+                            .limit(1)
+                            .single();
+                        messageWithSender = { ...messageWithSender, sender };
+
+                        // If message has a file_id, fetch the file data
+                        if (messageWithSender.file_id) {
+                            const { data: file } = await supabase
+                                .from('files')
+                                .select('id, name, type, size, url')
+                                .eq('id', messageWithSender.file_id)
                                 .limit(1)
                                 .single();
-                            messageWithSender = { ...messageWithSender, sender };
-
-                            // If message has a file_id, fetch the file data
-                            if (messageWithSender.file_id) {
-                                const { data: file } = await supabase
-                                    .from('files')
-                                    .select('id, name, type, size, url')
-                                    .eq('id', messageWithSender.file_id)
-                                    .limit(1)
-                                    .single();
-                                messageWithSender = { ...messageWithSender, file };
-                            }
-                        } catch (error) {
-                            console.error('Error fetching sender or file:', error);
+                            messageWithSender = { ...messageWithSender, file };
                         }
+                        onMessage({
+                            type: 'new_message',
+                            message: messageWithSender
+                        });
+                    } catch (error) {
+                        console.error('Error fetching sender or file:', error);
                     }
-                    switch (payload.eventType) {
-                        case 'INSERT':
-                            onMessage({
-                                type: 'new_message',
-                                message: messageWithSender
-                            });
-                            break;
-                        case 'UPDATE':
-                            onMessage({
-                                type: 'message_updated',
-                                message: messageWithSender
-                            });
-                            break;
-                        case 'DELETE':
-                            onMessage({
-                                type: 'message_deleted',
-                                messageId: payload.old.id
-                            });
-                            break;
+                }
+            )
+            .on('postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `parent_id=eq.${parentId}`
+                },
+                async (payload) => {
+                    console.log('Thread message update event:', payload);
+                    let messageWithSender = payload.new;
+                    try {
+                        const { data: sender } = await supabase
+                            .from('users')
+                            .select('id, username, avatar_url')
+                            .eq('id', messageWithSender.sender_id)
+                            .limit(1)
+                            .single();
+                        messageWithSender = { ...messageWithSender, sender };
+
+                        // If message has a file_id, fetch the file data
+                        if (messageWithSender.file_id) {
+                            const { data: file } = await supabase
+                                .from('files')
+                                .select('id, name, type, size, url')
+                                .eq('id', messageWithSender.file_id)
+                                .limit(1)
+                                .single();
+                            messageWithSender = { ...messageWithSender, file };
+                        }
+                        onMessage({
+                            type: 'message_updated',
+                            message: messageWithSender
+                        });
+                    } catch (error) {
+                        console.error('Error fetching sender or file:', error);
                     }
                 }
             )
