@@ -8,6 +8,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     realtime: {
         params: {
             eventsPerSecond: 10
+        },
+        timeout: 30000, // Increase timeout to 30 seconds
+        heartbeat: {
+            interval: 15000, // Send heartbeat every 15 seconds
+            maxRetries: 3    // Retry 3 times before considering connection dead
         }
     },
     auth: {

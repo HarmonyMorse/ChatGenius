@@ -19,24 +19,40 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
             .channel('direct-messages-changes')
             .on('postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: '*',  // Listen to all events
                     schema: 'public',
                     table: 'direct_message_members',
                     filter: `user_id=eq.${currentUser.id}`
                 },
                 (payload) => {
-                    console.log('New DM member event:', payload);
+                    console.log('DM member event:', payload);
                     loadDirectMessages();
                 }
-            )
-            .subscribe((status) => {
-                console.log('Direct messages subscription status:', status);
-            });
+            );
+
+        // Subscribe with proper error handling
+        channel.subscribe(async (status, err) => {
+            if (status === 'SUBSCRIBED') {
+                console.log('Successfully subscribed to direct messages changes');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.error('Channel subscription error:', err);
+                // Attempt to resubscribe after a delay
+                setTimeout(() => {
+                    console.log('Attempting to resubscribe...');
+                    channel.subscribe();
+                }, 5000);
+            } else if (status === 'TIMED_OUT') {
+                console.error('Channel subscription timed out');
+                // Attempt to resubscribe immediately
+                channel.subscribe();
+            }
+        });
 
         return () => {
+            console.log('Cleaning up DM subscription');
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [currentUser.id]); // Add currentUser.id as dependency
 
     const loadDirectMessages = async () => {
         try {
