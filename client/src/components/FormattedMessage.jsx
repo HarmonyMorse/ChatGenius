@@ -6,7 +6,7 @@ import { getUser } from '../services/auth';
 import FileDisplay from './FileDisplay';
 import EditMessageForm from './EditMessageForm';
 
-function FormattedMessage({ content, file, message, onEdit }) {
+function FormattedMessage({ content, file, message, onEdit, onPin }) {
     const [isEditing, setIsEditing] = useState(false);
     const currentUser = getUser();
     const isOwner = message && currentUser.id === message.sender.id;
@@ -22,6 +22,10 @@ function FormattedMessage({ content, file, message, onEdit }) {
 
     const handleCancel = () => {
         setIsEditing(false);
+    };
+
+    const handlePin = () => {
+        onPin(message.id);
     };
 
     if (isEditing) {
@@ -62,17 +66,30 @@ function FormattedMessage({ content, file, message, onEdit }) {
                 </ReactMarkdown>
             </div>
             {file && <FileDisplay file={file} />}
-            {isOwner && onEdit && (
+            {(isOwner || onPin) && (
                 <div className="mt-1 flex items-center space-x-2">
-                    <button
-                        onClick={handleEdit}
-                        className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>Edit</span>
-                    </button>
+                    {isOwner && onEdit && (
+                        <button
+                            onClick={handleEdit}
+                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Edit</span>
+                        </button>
+                    )}
+                    {onPin && (
+                        <button
+                            onClick={handlePin}
+                            className={`text-xs ${message.pinned ? 'text-yellow-600' : 'text-gray-500 hover:text-gray-700'} flex items-center space-x-1`}
+                        >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            <span>{message.pinned ? 'Pinned' : 'Pin'}</span>
+                        </button>
+                    )}
                 </div>
             )}
         </div>
@@ -86,9 +103,11 @@ FormattedMessage.propTypes = {
         id: PropTypes.string,
         sender: PropTypes.shape({
             id: PropTypes.string
-        })
+        }),
+        pinned: PropTypes.bool
     }),
-    onEdit: PropTypes.func
+    onEdit: PropTypes.func,
+    onPin: PropTypes.func
 };
 
 export default FormattedMessage;

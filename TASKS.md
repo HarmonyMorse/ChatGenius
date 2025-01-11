@@ -1,5 +1,34 @@
 # ChatGenius Implementation Tasks
 
+## Summary
+
+Required tasks:
+- [x] Authentication
+- [x] Real-time messaging 
+- [x] Channel/DM organization
+- [x] File sharing & search
+- [x] User presence & status
+- [x] Thread support
+- [x] Emoji reactions
+
+---
+
+Remaining tasks:
+
+### Channel & DM System
+- Add unread indicators for channels and DMs
+
+### User Features
+- Implement last seen tracking
+- Create user profile system
+
+### Enhanced Features
+- Add file preview functionality
+- Create message bookmarking
+- Implement message categories
+- Create user mentions
+- Add channel notifications
+
 ## Phase 1: Project Setup and Authentication ✓
 1. Initialize project repository and structure ✓
    - [x] Set up GitHub repository
@@ -64,7 +93,7 @@
    - [ ] Channel & DM System
      - [x] Create channel data model
        > Designed channel schema with user roles, permissions, and message relationships
-     - [ ] Implement channel CRUD operations
+     - [x] Implement channel CRUD operations
        > Next step: Add update and delete functionality for channels
      - [x] Build direct messaging functionality
        > Implemented direct messaging with real-time updates, user selection, and conversation history
@@ -133,7 +162,7 @@
    - [x] Set up AWS S3 for file storage
    - [x] Implement file upload/download
    - [ ] Add file preview functionality
-   - [ ] Create file search feature
+   - [x] Create file search feature
 
 2. Engagement Features
    - [ ] Message organization

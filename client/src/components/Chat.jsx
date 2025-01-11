@@ -635,7 +635,7 @@ function Chat({ onLogout }) {
                                                             />
                                                         ) : (
                                                             <>
-                                                                <FormattedMessage content={message.content} file={message.file} message={message} onEdit={handleEditMessage} />
+                                                                <FormattedMessage content={message.content} file={message.file} message={message} onEdit={handleEditMessage} onPin={handlePinMessage} />
                                                                 <div className="flex items-center space-x-4 mt-1">
                                                                     <MessageReactions
                                                                         reactions={message.reactions}
