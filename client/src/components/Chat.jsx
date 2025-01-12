@@ -144,14 +144,31 @@ function Chat({ onLogout }) {
                 } else {
                     messages = await messageService.getChannelMessages(currentChannelId);
                 }
-                // Load reactions for each message
-                const messagesWithReactions = await Promise.all(
+
+                // Load pinned messages first to get the pinned status
+                const { data: pinnedMessages, error: pinnedError } = await supabase
+                    .from('pinned_messages')
+                    .select('message_id')
+                    .eq('channel_id', currentChannelId);
+
+                if (pinnedError) {
+                    console.error('Error loading pinned messages:', pinnedError);
+                }
+
+                const pinnedMessageIds = new Set(pinnedMessages?.map(p => p.message_id) || []);
+
+                // Load reactions for each message and set pinned status
+                const messagesWithReactionsAndPins = await Promise.all(
                     messages.map(async (message) => {
                         const reactions = await reactionService.getMessageReactions(message.id);
-                        return { ...message, reactions };
+                        return {
+                            ...message,
+                            reactions,
+                            pinned: pinnedMessageIds.has(message.id)
+                        };
                     })
                 );
-                setMessages(messagesWithReactions);
+                setMessages(messagesWithReactionsAndPins);
 
                 // Load reply counts for each message
                 const counts = {};
@@ -280,6 +297,13 @@ function Chat({ onLogout }) {
             setMessages(prev => prev.map(msg =>
                 msg.id === messageId ? { ...updatedMessage, reactions: msg.reactions } : msg
             ));
+
+            // Update pinned messages list
+            if (updatedMessage.pinned) {
+                setPinnedMessages(prev => [...prev, { ...updatedMessage }]);
+            } else {
+                setPinnedMessages(prev => prev.filter(msg => msg.id !== messageId));
+            }
         } catch (error) {
             console.error('Error toggling message pin:', error);
         }
@@ -314,6 +338,8 @@ function Chat({ onLogout }) {
                         created_by: channels[0].creator.id
                     };
                     setCurrentChannel(channel);
+                    // Load pinned messages when channel is loaded
+                    loadPinnedMessages();
                 } else {
                     console.log('No channel found with ID:', currentChannelId);
                     setCurrentChannel(null);
@@ -358,12 +384,6 @@ function Chat({ onLogout }) {
             console.error('Error in pinned messages loading:', error);
         }
     };
-
-    useEffect(() => {
-        if (showPinnedMessages) {
-            loadPinnedMessages();
-        }
-    }, [showPinnedMessages, currentChannelId]);
 
     const handleViewPinnedMessages = (show) => {
         setShowPinnedMessages(show);
@@ -586,7 +606,7 @@ function Chat({ onLogout }) {
 
                             {/* Messages area */}
                             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {messages
+                                {(showPinnedMessages ? pinnedMessages : messages)
                                     .filter(message => !message.parent_id) // Only show messages that are not replies
                                     .map((message) => (
                                         <div key={message.id} className={message.type === 'system' ? systemMessageStyles.container : 'flex items-start space-x-3'}>
