@@ -57,12 +57,31 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const { channelId, messageContent } = req.body;
-        if (!channelId) {
-            return res.status(400).json({ message: 'Channel ID is required' });
+        const { channelId, dmId, messageContent } = req.body;
+        if (!channelId && !dmId) {
+            return res.status(400).json({ message: 'Either Channel ID or DM ID is required' });
+        }
+
+        if (channelId && dmId) {
+            return res.status(400).json({ message: 'Cannot specify both Channel ID and DM ID' });
         }
 
         const userId = req.user.id;
+
+        // If it's a DM, verify the user is a member
+        if (dmId) {
+            const { data: membership, error: membershipError } = await supabase
+                .from('direct_message_members')
+                .select('dm_id')
+                .eq('dm_id', dmId)
+                .eq('user_id', userId)
+                .limit(1)
+                .single();
+
+            if (membershipError || !membership) {
+                return res.status(403).json({ message: 'Not authorized to send files in this DM' });
+            }
+        }
 
         // Upload file to S3
         console.log('Uploading file to S3:', {
@@ -104,7 +123,8 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
             .insert({
                 content: messageContent || `Shared a file: ${req.file.originalname}`,
                 sender_id: userId,
-                channel_id: channelId,
+                channel_id: channelId || null,
+                dm_id: dmId || null,
                 file_id: file.id
             })
             .select(`

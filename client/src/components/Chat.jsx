@@ -474,7 +474,10 @@ function Chat({ onLogout }) {
         if (!file) return;
 
         try {
-            await fileService.uploadFile(file, currentChannelId);
+            await fileService.uploadFile(file, {
+                channelId: selectedDMId ? null : currentChannelId,
+                dmId: selectedDMId
+            });
             // The message will be added through the realtime subscription
             event.target.value = ''; // Reset file input
         } catch (error) {
