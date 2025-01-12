@@ -277,10 +277,10 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
         const { messageId } = req.params;
         const userId = req.user.id;
 
-        // First check if the message exists and get its channel_id
+        // First check if the message exists and get its channel_id or dm_id
         const { data: message, error: messageError } = await supabase
             .from('messages')
-            .select('id, channel_id')
+            .select('id, channel_id, dm_id')
             .eq('id', messageId)
             .limit(1)
             .single();
@@ -292,6 +292,21 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
 
         if (!message) {
             return res.status(404).json({ message: 'Message not found' });
+        }
+
+        // If it's a DM message, verify the user is a member
+        if (message.dm_id) {
+            const { data: membership, error: membershipError } = await supabase
+                .from('direct_message_members')
+                .select('dm_id')
+                .eq('dm_id', message.dm_id)
+                .eq('user_id', userId)
+                .limit(1)
+                .single();
+
+            if (membershipError || !membership) {
+                return res.status(403).json({ message: 'Not authorized to pin messages in this DM' });
+            }
         }
 
         // Check if the message is already pinned
@@ -327,6 +342,7 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
                 .insert({
                     message_id: messageId,
                     channel_id: message.channel_id,
+                    dm_id: message.dm_id,
                     pinned_by: userId
                 })
                 .select()

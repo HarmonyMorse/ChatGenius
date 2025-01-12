@@ -149,7 +149,7 @@ function Chat({ onLogout }) {
                 const { data: pinnedMessages, error: pinnedError } = await supabase
                     .from('pinned_messages')
                     .select('message_id')
-                    .eq('channel_id', currentChannelId);
+                    .eq(selectedDMId ? 'dm_id' : 'channel_id', selectedDMId || currentChannelId);
 
                 if (pinnedError) {
                     console.error('Error loading pinned messages:', pinnedError);
@@ -364,7 +364,7 @@ function Chat({ onLogout }) {
                         sender:sender_id(id, username, avatar_url)
                     )
                 `)
-                .eq('channel_id', currentChannelId);
+                .eq(selectedDMId ? 'dm_id' : 'channel_id', selectedDMId || currentChannelId);
 
             if (error) {
                 console.error('Error loading pinned messages:', error);
@@ -387,6 +387,9 @@ function Chat({ onLogout }) {
 
     const handleViewPinnedMessages = (show) => {
         setShowPinnedMessages(show);
+        if (show) {
+            loadPinnedMessages();
+        }
     };
 
     const handleLeaveChannel = async () => {
@@ -596,13 +599,27 @@ function Chat({ onLogout }) {
 
                             {selectedDMId && dmParticipants.length > 0 && (
                                 <div className="bg-white border-b px-6 py-3">
-                                    <div className="flex items-center">
+                                    <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-semibold text-gray-900">
                                             {dmParticipants
                                                 .filter(p => p.id !== currentUser.id)
                                                 .map(p => p.username)
                                                 .join(', ')}
                                         </h2>
+                                        <div className="flex items-center space-x-4">
+                                            <button
+                                                onClick={() => handleViewPinnedMessages(!showPinnedMessages)}
+                                                className={`flex items-center space-x-2 px-3 py-1 rounded-md text-sm ${showPinnedMessages
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M9.293 1.293a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 4.414V13a1 1 0 11-2 0V4.414L7.707 5.707a1 1 0 01-1.414-1.414l3-3z" />
+                                                </svg>
+                                                <span>{showPinnedMessages ? 'Show All Messages' : 'Show Pinned Messages'}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
