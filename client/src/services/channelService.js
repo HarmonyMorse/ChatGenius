@@ -4,10 +4,10 @@ class ChannelService {
     async createChannel(channelData) {
         try {
             console.log("Client: [createChannel] Creating channel with data:", channelData);
-            console.log("Client: [createChannel] Making request to:", `${api.defaults.baseURL}/api/channels`);
+            console.log("Client: [createChannel] Making request to:", `${api.defaults.baseURL}/channels`);
             const token = localStorage.getItem('auth_token');
             console.log("Client: [createChannel] Auth token present:", !!token);
-            const response = await api.post('/api/channels', channelData);
+            const response = await api.post('/channels', channelData);
             console.log("Client: [createChannel] Response:", response);
             return response.data;
         } catch (error) {
@@ -23,36 +23,36 @@ class ChannelService {
     }
 
     async getChannels() {
-        const response = await api.get('/api/channels');
+        const response = await api.get('/channels');
         return response.data;
     }
 
     async getPublicChannels() {
-        const response = await api.get('/api/channels/public');
+        const response = await api.get('/channels/public');
         return response.data;
     }
 
     async getChannel(channelId) {
-        const response = await api.get(`/api/channels/${channelId}`);
+        const response = await api.get(`/channels/${channelId}`);
         return response.data;
     }
 
     async updateChannel(channelId, channelData) {
-        const response = await api.put(`/api/channels/${channelId}`, channelData);
+        const response = await api.put(`/channels/${channelId}`, channelData);
         return response.data;
     }
 
     async deleteChannel(channelId) {
-        await api.delete(`/api/channels/${channelId}`);
+        await api.delete(`/channels/${channelId}`);
     }
 
     async joinChannel(channelId) {
-        const response = await api.post(`/api/channels/${channelId}/join`);
+        const response = await api.post(`/channels/${channelId}/join`);
         return response.data;
     }
 
     async leaveChannel(channelId) {
-        const response = await api.post(`/api/channels/${channelId}/leave`);
+        const response = await api.post(`/channels/${channelId}/leave`);
         return response.data;
     }
 }

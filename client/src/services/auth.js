@@ -4,7 +4,7 @@ const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user';
 
 export const login = async (email, password) => {
-    const response = await api.post('/api/auth/login', { email, password });
+    const response = await api.post('/auth/login', { email, password });
     const { token, user } = response.data;
 
     // Store token and user data
@@ -15,7 +15,7 @@ export const login = async (email, password) => {
 };
 
 export const register = async (email, password, username) => {
-    const response = await api.post('/api/auth/register', {
+    const response = await api.post('/auth/register', {
         email,
         password,
         username
