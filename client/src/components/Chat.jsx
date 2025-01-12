@@ -361,7 +361,8 @@ function Chat({ onLogout }) {
                     *,
                     message:message_id(
                         *,
-                        sender:sender_id(id, username, avatar_url)
+                        sender:sender_id(id, username, avatar_url),
+                        file:file_id(id, name, type, size, url)
                     )
                 `)
                 .eq(selectedDMId ? 'dm_id' : 'channel_id', selectedDMId || currentChannelId);

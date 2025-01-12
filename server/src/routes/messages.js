@@ -361,7 +361,8 @@ router.put('/:messageId/pin', authenticateJWT, async (req, res) => {
             .from('messages')
             .select(`
                 *,
-                sender:sender_id(id, username, avatar_url)
+                sender:sender_id(id, username, avatar_url),
+                file:file_id(id, name, type, size, url)
             `)
             .eq('id', messageId)
             .limit(1)
