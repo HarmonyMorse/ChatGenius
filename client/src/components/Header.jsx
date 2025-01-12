@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 import { getUser } from '../services/auth';
 import userService from '../services/userService';
 import SearchModal from './SearchModal';
+import BookmarkedMessages from './BookmarkedMessages';
 
 function Header({ onLogout = () => { } }) {
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [showSearchModal, setShowSearchModal] = useState(false);
+    const [showBookmarksModal, setShowBookmarksModal] = useState(false);
     const [currentStatus, setCurrentStatus] = useState('offline');
     const [customStatus, setCustomStatus] = useState('');
     const [customStatusColor, setCustomStatusColor] = useState('#9333ea'); // Default purple
@@ -104,48 +106,6 @@ function Header({ onLogout = () => { } }) {
         }
     };
 
-    const getStatusColor = (status) => {
-        if (status.includes('|')) {
-            const [, color] = status.split('|');
-            return { backgroundColor: color };
-        }
-
-        const colors = {
-            online: '#22c55e',
-            away: '#eab308',
-            busy: '#ef4444',
-            offline: '#6b7280'
-        };
-
-        return { backgroundColor: colors[status] || '#9333ea' };
-    };
-
-    const getStatusDisplay = (status) => {
-        let text;
-        if (status.includes('|')) {
-            [text] = status.split('|');
-        } else {
-            switch (status) {
-                case 'online':
-                    text = 'Online';
-                    break;
-                case 'away':
-                    text = 'Away';
-                    break;
-                case 'busy':
-                    text = 'Do Not Disturb';
-                    break;
-                case 'offline':
-                    text = 'Offline';
-                    break;
-                default:
-                    text = status;
-            }
-        }
-
-        return text.length > 10 ? `${text.substring(0, 10)}...` : text;
-    };
-
     const isCurrentStatus = (status) => {
         if (isAutoMode) return status === 'auto';
         if (currentStatus.includes('|')) return false;
@@ -194,50 +154,32 @@ function Header({ onLogout = () => { } }) {
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={() => setShowSearchModal(true)}
-                            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md flex items-center gap-2"
+                            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <span className="text-sm">Search</span>
+                        </button>
+
+                        <button
+                            onClick={() => setShowBookmarksModal(true)}
+                            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
                         </button>
 
                         <div className="relative">
                             <button
                                 onClick={() => setShowStatusMenu(!showStatusMenu)}
-                                className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100"
+                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none"
                             >
-                                <div className="relative">
-                                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                                        {currentUser?.avatar_url && (
-                                            <img
-                                                src={currentUser.avatar_url}
-                                                alt="avatar"
-                                                className="w-8 h-8 rounded-full"
-                                            />
-                                        )}
-                                    </div>
-                                    <div
-                                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white`}
-                                        style={getStatusColor(currentStatus)}
-                                    />
-                                </div>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-gray-700">{currentUser?.username}</span>
-                                    <span className="text-sm text-gray-500 max-w-[150px] truncate" title={getStatusDisplay(currentStatus)}>
-                                        {getStatusDisplay(currentStatus)}
-                                    </span>
-                                </div>
+                                <div
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: customStatusColor }}
+                                ></div>
+                                <span className="text-sm text-gray-700">{currentUser.username}</span>
                             </button>
 
                             {showStatusMenu && (
@@ -380,14 +322,23 @@ function Header({ onLogout = () => { } }) {
                                 </div>
                             )}
                         </div>
+                        <button
+                            onClick={onLogout}
+                            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <SearchModal
-                isOpen={showSearchModal}
-                onClose={() => setShowSearchModal(false)}
-            />
+            {showSearchModal && (
+                <SearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
+            )}
+            {showBookmarksModal && (
+                <BookmarkedMessages isOpen={showBookmarksModal} onClose={() => setShowBookmarksModal(false)} />
+            )}
         </header>
     );
 }

@@ -1,15 +1,36 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getUser } from '../services/auth';
 import FileDisplay from './FileDisplay';
 import EditMessageForm from './EditMessageForm';
+import bookmarkService from '../services/bookmarkService';
+import { supabase } from '../supabaseClient';
 
 function FormattedMessage({ content, file, message, onEdit, onPin }) {
     const [isEditing, setIsEditing] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
     const currentUser = getUser();
     const isOwner = message && currentUser.id === message.sender.id;
+
+    useEffect(() => {
+        const checkBookmarkStatus = async () => {
+            if (!message) return;
+            try {
+                const { data } = await supabase
+                    .from('bookmarked_messages')
+                    .select('message_id')
+                    .eq('message_id', message.id)
+                    .single();
+                setIsBookmarked(!!data);
+            } catch (error) {
+                console.error('Error checking bookmark status:', error);
+            }
+        };
+
+        checkBookmarkStatus();
+    }, [message]);
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -28,6 +49,15 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
         onPin(message.id);
     };
 
+    const handleBookmark = async () => {
+        try {
+            const isNowBookmarked = await bookmarkService.toggleBookmark(message.id);
+            setIsBookmarked(isNowBookmarked);
+        } catch (error) {
+            console.error('Error toggling bookmark:', error);
+        }
+    };
+
     if (isEditing) {
         return <EditMessageForm message={message} onSave={handleSave} onCancel={handleCancel} />;
     }
@@ -38,7 +68,6 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                        // Override default element styling
                         p: ({ children }) => <p className="my-1">{children}</p>,
                         a: ({ href, children }) => (
                             <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
@@ -47,14 +76,15 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
                         ),
                         ul: ({ children }) => <ul className="list-disc list-inside my-1">{children}</ul>,
                         ol: ({ children }) => <ol className="list-decimal list-inside my-1">{children}</ol>,
-                        code: ({ inline, children }) =>
+                        code: ({ inline, children }) => (
                             inline ? (
                                 <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">{children}</code>
                             ) : (
                                 <pre className="bg-gray-100 p-2 rounded overflow-x-auto">
                                     <code>{children}</code>
                                 </pre>
-                            ),
+                            )
+                        ),
                         blockquote: ({ children }) => (
                             <blockquote className="border-l-4 border-gray-200 pl-4 my-2 text-gray-600">
                                 {children}
@@ -83,13 +113,25 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
                         <button
                             onClick={handlePin}
                             className={`text-xs flex items-center ${message.pinned
-                                    ? 'text-yellow-600 hover:text-yellow-700'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'text-yellow-600 hover:text-yellow-700'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             {message.pinned ? 'Pinned' : 'Pin'}
                         </button>
                     )}
+                    <button
+                        onClick={handleBookmark}
+                        className={`text-xs flex items-center space-x-1 ${isBookmarked
+                            ? 'text-blue-600 hover:text-blue-700'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill={isBookmarked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        <span>{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                    </button>
                 </div>
             )}
         </div>
