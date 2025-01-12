@@ -161,9 +161,14 @@ CREATE TABLE bookmarked_messages (
 CREATE TABLE pinned_messages (
     message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
     channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
+    dm_id UUID REFERENCES direct_messages(id) ON DELETE CASCADE,
     pinned_by UUID REFERENCES users(id) ON DELETE SET NULL,
     pinned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    PRIMARY KEY (message_id)
+    PRIMARY KEY (message_id),
+    CHECK (
+        (channel_id IS NOT NULL AND dm_id IS NULL) OR
+        (channel_id IS NULL AND dm_id IS NOT NULL)
+    )
 );
 
 -- Create triggers for updated_at timestamps
