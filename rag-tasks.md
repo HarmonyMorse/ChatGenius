@@ -49,52 +49,52 @@ Below is a detailed breakdown of how to embed existing messages, store them in a
    - [x] Confirm the index stats match the number of items you uploaded.
 
 8. Keep Your Embedding Script Maintained  
-   - [ ] Store your embedding logic in a utility/script (e.g., embedMessages.js or in a dedicated function in ragService.js for local usage).  
-   - [ ] Decide how and when you’ll re-run embeddings (e.g., for newly created messages).
+   - [x] Store your embedding logic in a utility/script (e.g., embedMessages.js or in a dedicated function in ragService.js for local usage).  
+   - [x] Decide how and when you’ll re-run embeddings (e.g., for newly created messages).
 
 ---
 
 ## Step 2: Query the Vector Database (Via LangChain) and Generate an LLM Answer
 
 1. Create a “Query” or “Ask” Endpoint in the Backend  
-   - [ ] Set up an Express route (e.g., POST /api/rag/message) if you haven’t already.  
-   - [ ] Apply authentication or middleware (e.g., JWT) as needed.
+   - [x] Set up an Express route (e.g., POST /api/rag/message) if you haven’t already.  
+   - [x] Apply authentication or middleware (e.g., JWT) as needed.
 
 2. Embed the User’s Query (Using LangChain)  
-   - [ ] On receiving the user’s query from the client (e.g., in the request body), generate an embedding with OpenAI via LangChain.  
-   - [ ] Store or immediately use the embedding to perform a similarity search.
+   - [x] On receiving the user’s query from the client (e.g., in the request body), generate an embedding with OpenAI via LangChain.  
+   - [x] Store or immediately use the embedding to perform a similarity search.
 
 3. Perform a Similarity Search in Pinecone (Using LangChain)  
-   - [ ] Use the query embedding within LangChain’s PineconeStore or VectorStore-based retriever—e.g. from @langchain/pinecone—to find top-K most relevant message vectors.  
-   - [ ] Retrieve metadata (original text, timestamps, user info, channel info, etc.).  
-   - [ ] Decide how many results you want (3, 5, or more). Consider prompt size constraints.
+   - [x] Use the query embedding within LangChain’s PineconeStore or VectorStore-based retriever—e.g. from @langchain/pinecone—to find top-K most relevant message vectors.  
+   - [x] Retrieve metadata (original text, timestamps, user info, channel info, etc.).  
+   - [x] Decide how many results you want (3, 5, or more). Consider prompt size constraints.
 
 4. Construct a Prompt for the LLM (Via LangChain)  
-   - [ ] Combine the corpus of retrieved messages into a single “context block.”  
-   - [ ] Append the user’s question.  
-   - [ ] If using ChatGPT-style endpoints (like gpt-3.5-turbo or gpt-4), build them as “system” and “user” messages using LangChain’s ChatPrompt functionality.  
-   - [ ] Otherwise, assemble a text prompt for standard completions.
+   - [x] Combine the corpus of retrieved messages into a single “context block.”  
+   - [x] Append the user’s question.  
+   - [x] If using ChatGPT-style endpoints (like gpt-3.5-turbo or gpt-4), build them as “system” and “user” messages using LangChain’s ChatPrompt functionality.  
+   - [x] Otherwise, assemble a text prompt for standard completions.
 
 5. Send the Prompt to OpenAI (Through LangChain)  
-   - [ ] Use the correct endpoint / model (e.g., /v1/chat/completions or /v1/completions) via a LangChain model wrapper (e.g., ChatOpenAI).  
-   - [ ] Configure your model parameters (model, temperature, max_tokens, etc.).  
-   - [ ] Handle potential rate limits or errors gracefully in your server code.
+   - [x] Use the correct endpoint / model (e.g., /v1/chat/completions or /v1/completions) via a LangChain model wrapper (e.g., ChatOpenAI).  
+   - [x] Configure your model parameters (model, temperature, max_tokens, etc.).  
+   - [x] Handle potential rate limits or errors gracefully in your server code.
 
 6. Parse and Return the Answer  
-   - [ ] Extract the text from the model’s response.  
-   - [ ] Return it as JSON in your API response (e.g., { answer: "..." }).  
-   - [ ] Handle timeouts or exceptions by returning an error message to the client.
+   - [x] Extract the text from the model’s response.  
+   - [x] Return it as JSON in your API response (e.g., { answer: "..." }).  
+   - [x] Handle timeouts or exceptions by returning an error message to the client.
 
 7. Integrate into the UI  
-   - [ ] Create a client function (e.g., sendMessage or askAI) that posts the user’s question to your new endpoint.  
-   - [ ] Display the AI’s response in the conversation thread or a dedicated AI panel.  
-   - [ ] Show loading spinners or error states as needed.
+   - [x] Create a client function (e.g., sendMessage or askAI) that posts the user’s question to your new endpoint.  
+   - [x] Display the AI’s response in the conversation thread or a dedicated AI panel.  
+   - [x] Show loading spinners or error states as needed.
 
 8. Confirm End-to-End Functionality  
-   - [ ] Spin up both server and client.  
-   - [ ] Send a test question.  
-   - [ ] Verify your results are contextually relevant (they should reflect real data in your Pinecone index).  
-   - [ ] Confirm performance and fix any bottlenecks.
+   - [x] Spin up both server and client.  
+   - [x] Send a test question.  
+   - [x] Verify your results are contextually relevant (they should reflect real data in your Pinecone index).  
+   - [x] Confirm performance and fix any bottlenecks.
 
 9. (Optional) Further Optimizations with LangChain  
    - [ ] Implement caching for repeated queries or popular contexts.  
