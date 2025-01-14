@@ -54,6 +54,9 @@ class RagService {
 
         // Initialize the index reference
         this.index = this.pinecone.Index(process.env.PINECONE_INDEX);
+
+        // Expose Supabase client
+        this.supabase = supabase;
     }
 
     // Helper to generate 3072-dimensional embeddings
