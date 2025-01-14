@@ -19,6 +19,28 @@ router.post('/messages/:messageId', authenticateJWT, async (req, res) => {
         const { messageId } = req.params;
         const userId = req.user.id;
 
+        // Check cache first
+        const { data: cachedAnalysis, error: cacheError } = await supabase
+            .from('message_analyses')
+            .select('*')
+            .eq('message_id', messageId)
+            .limit(1)
+            .single();
+
+        // If we have a recent cached analysis (less than 1 hour old), return it
+        if (cachedAnalysis && !cacheError) {
+            const cacheAge = Date.now() - new Date(cachedAnalysis.created_at).getTime();
+            if (cacheAge < 3600000) { // 1 hour in milliseconds
+                return res.json({
+                    success: true,
+                    message: 'Analysis retrieved from cache',
+                    data: cachedAnalysis.analysis_data,
+                    cached: true,
+                    cacheAge: Math.round(cacheAge / 1000) // Convert to seconds
+                });
+            }
+        }
+
         // Fetch the target message and verify access
         const { data: message, error: messageError } = await supabase
             .from('messages')
@@ -65,27 +87,66 @@ router.post('/messages/:messageId', authenticateJWT, async (req, res) => {
             }
         }
 
-        // Get message context using the analysis service
-        const messageContext = await analysisService.getMessageContext(messageId);
-
-        // Return the context for now (will be replaced with actual analysis later)
-        res.json({
-            success: true,
-            message: 'Message context gathered successfully',
-            data: {
-                targetMessage: messageContext.targetMessage,
-                context: messageContext.context,
-                conversationType: messageContext.conversationType,
-                conversationId: messageContext.conversationId
-            }
+        // Send initial response to indicate analysis has started
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
         });
+
+        // Send status update
+        const sendUpdate = (event, data) => {
+            res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        };
+
+        sendUpdate('status', {
+            status: 'started',
+            message: 'Analysis started'
+        });
+
+        // Get message context and perform analysis
+        const result = await analysisService.getMessageContext(messageId);
+
+        // Cache the analysis result
+        const { error: insertError } = await supabase
+            .from('message_analyses')
+            .upsert({
+                message_id: messageId,
+                analysis_data: result,
+                created_at: new Date().toISOString(),
+                created_by: userId
+            });
+
+        if (insertError) {
+            console.error('Error caching analysis:', insertError);
+        }
+
+        // Send final result
+        sendUpdate('result', {
+            success: true,
+            message: 'Analysis completed successfully',
+            data: result
+        });
+
+        // End the stream
+        res.end();
 
     } catch (error) {
         console.error('Error analyzing message:', error);
-        res.status(500).json({
-            error: 'Failed to analyze message',
-            details: error.message
-        });
+        // If headers haven't been sent yet, send error as regular JSON
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: 'Failed to analyze message',
+                details: error.message
+            });
+        } else {
+            // If we're in SSE mode, send error as event
+            res.write(`event: error\ndata: ${JSON.stringify({
+                error: 'Failed to analyze message',
+                details: error.message
+            })}\n\n`);
+            res.end();
+        }
     }
 });
 

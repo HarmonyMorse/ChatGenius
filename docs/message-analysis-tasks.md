@@ -79,16 +79,16 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 ## Step 5: Return Analysis Results and (Optional) Real-time Updates
 
 1. Return JSON to the Client  
-   - [ ] Send a JSON response, e.g., { analysis: "...", metadata: {...} }.  
-   - [ ] Ensure you include enough information for the UI to display results clearly.
+   - [x] Send a JSON response, e.g., { analysis: "...", metadata: {...} }.  
+   - [x] Ensure you include enough information for the UI to display results clearly.
 
 2. (Optional) Implement Real-time Analysis Feedback  
-   - [ ] If you want live updates (e.g., streaming partial results), consider using Socket.io or Server-Sent Events.  
-   - [ ] Signal the client when analysis starts and finishes (via WebSocket events or another mechanism).
+   - [x] If you want live updates (e.g., streaming partial results), consider using Socket.io or Server-Sent Events.  
+   - [x] Signal the client when analysis starts and finishes (via WebSocket events or another mechanism).
 
 3. Store or Cache Results (Optional)  
-   - [ ] If repeated queries are likely, you may store analysis in your database.  
-   - [ ] Implement caching or re-ranking for repeated analysis calls.
+   - [x] If repeated queries are likely, you may store analysis in your database.  
+   - [x] Implement caching or re-ranking for repeated analysis calls.
 
 ---
 
