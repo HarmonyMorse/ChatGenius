@@ -7,16 +7,16 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 ## Step 1: Create the Analysis Endpoint
 
 1. Define an Express Route  
-   - [ ] Create a POST route (e.g., POST /api/messages/:messageId/analyze) for receiving the “Analyze” request from the client.  
-   - [ ] Ensure that authentication middleware (JWT) is applied as needed.
+   - [x] Create a POST route (e.g., POST /api/messages/:messageId/analyze) for receiving the "Analyze" request from the client.  
+   - [x] Ensure that authentication middleware (JWT) is applied as needed.
 
 2. Accept the Request Payload  
-   - [ ] Capture the message ID from the route parameter.  
-   - [ ] (Optional) Include additional request data, such as user preferences for analysis or extra metadata.
+   - [x] Capture the message ID from the route parameter.  
+   - [x] (Optional) Include additional request data, such as user preferences for analysis or extra metadata.
 
 3. Validate Inputs  
-   - [ ] Check that the message ID is valid.  
-   - [ ] Confirm the user has permission to analyze the message (e.g., belongs to the same channel/DM).
+   - [x] Check that the message ID is valid.  
+   - [x] Confirm the user has permission to analyze the message (e.g., belongs to the same channel/DM).
 
 ---
 
@@ -30,12 +30,12 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
    - [ ] Confirm whether you need to fetch public channel messages, private channel messages, or direct messages.
 
 3. Retrieve the Last 5 Relevant Messages
-   - [ ] Query your database for the 5 most recent messages in the same conversation before the target message’s timestamp.
+   - [ ] Query your database for the 5 most recent messages in the same conversation before the target message's timestamp.
    - [ ] Sort them chronologically.
    - [ ] Collect these messages (including the target message) for context.
 
 4. (Optional) Chunk or Preprocess Messages
-   - [ ] If any messages are very long, optionally split them into smaller segments (via LangChain’s TextSplitter).
+   - [ ] If any messages are very long, optionally split them into smaller segments (via LangChain's TextSplitter).
 
 ---
 
@@ -46,11 +46,11 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 
 2. Embed the New Context or Query  
    - [ ] Use your existing embedding logic (OpenAIEmbeddings) to convert each message or chunk into vectors.  
-   - [ ] If you plan to query a broader knowledge base, use the user’s question or entire context block as a query embedding.
+   - [ ] If you plan to query a broader knowledge base, use the user's question or entire context block as a query embedding.
 
 3. Search Pinecone for Relevant Matching Data  
    - [ ] Initialize Pinecone with your credentials.  
-   - [ ] Query the index (via LangChain’s PineconeStore or direct Pinecone client) with your embeddings.  
+   - [ ] Query the index (via LangChain's PineconeStore or direct Pinecone client) with your embeddings.  
    - [ ] Retrieve the top K results (metadata and vector closeness).  
    - [ ] Merge these results with your local 5-message context, if desired.
 
@@ -60,9 +60,9 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 
 1. Build the Analysis Prompt  
    - [ ] Combine the relevant context (5 messages, plus any Pinecone results) into a single prompt.  
-   - [ ] Append a system or user instruction, like “Analyze this conversation and summarize its key points.”
+   - [ ] Append a system or user instruction, like "Analyze this conversation and summarize its key points."
 
-2. Use LangChain’s Chat or Completion Models  
+2. Use LangChain's Chat or Completion Models  
    - [ ] If you need a structured approach, use ChatOpenAI from @langchain/chat_models.  
    - [ ] For standard text completions, use the OpenAI wrapper in LangChain with your chosen model (e.g., gpt-3.5-turbo).
 
@@ -99,7 +99,7 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
    - [ ] Mock or fetch real messages, pass them through the analysis endpoint, and log the response.
 
 2. Integration Tests  
-   - [ ] Ensure the “Analyze” feature works alongside other message actions (e.g., sending, editing, pinning).
+   - [ ] Ensure the "Analyze" feature works alongside other message actions (e.g., sending, editing, pinning).
 
 3. Performance and Rate Limits  
    - [ ] Monitor how your analysis calls impact OpenAI usage and Pinecone query limits.  

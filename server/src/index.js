@@ -9,6 +9,7 @@ import userRoutes from './routes/users.js';
 import reactionRoutes from './routes/reactions.js';
 import fileRoutes from './routes/files.js';
 import ragRoutes from './routes/rag.js';
+import analysisRoutes from './routes/analysis.js';
 import { authenticateJWT } from './middleware/auth.js';
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/reactions', reactionRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/rag', ragRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticateJWT, (req, res) => {
