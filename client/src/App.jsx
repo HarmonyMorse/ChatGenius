@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Auth from './pages/Auth';
 import Chat from './components/Chat';
 import BrowseChannels from './pages/BrowseChannels';
+import RagChatPage from './pages/RagChatPage';
 import { getToken, logout } from './services/auth';
 
 function App() {
@@ -46,6 +47,16 @@ function App() {
           element={
             isAuthenticated ? (
               <BrowseChannels />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            isAuthenticated ? (
+              <RagChatPage />
             ) : (
               <Navigate to="/" replace />
             )

@@ -8,6 +8,7 @@ import channelRoutes from './routes/channels.js';
 import userRoutes from './routes/users.js';
 import reactionRoutes from './routes/reactions.js';
 import fileRoutes from './routes/files.js';
+import ragRoutes from './routes/rag.js';
 import { authenticateJWT } from './middleware/auth.js';
 
 dotenv.config();
@@ -20,6 +21,7 @@ const corsOptions = {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Authorization'],
     credentials: true
 };
 
@@ -35,6 +37,7 @@ app.use('/api/channels', channelRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reactions', reactionRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/rag', ragRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticateJWT, (req, res) => {
