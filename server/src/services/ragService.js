@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { OpenAIEmbeddings } from '@langchain/openai';
 
 // Load environment variables
 dotenv.config();
@@ -8,9 +9,14 @@ dotenv.config();
 // Debug logging for environment variables
 console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Found' : 'Missing');
 console.log('Supabase Service Key:', process.env.SUPABASE_SERVICE_KEY ? 'Found' : 'Missing');
+console.log('OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Found' : 'Missing');
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     throw new Error('Missing required Supabase environment variables');
+}
+
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('Missing OpenAI API key');
 }
 
 const supabase = createClient(
@@ -25,6 +31,12 @@ class RagService {
             chunkSize: 500,          // Smaller chunks for chat messages
             chunkOverlap: 50,        // Small overlap to maintain context
             separators: ["\n\n", "\n", " ", ""],  // Common message separators
+        });
+
+        // Initialize OpenAI embeddings with ada-002 model
+        this.embeddings = new OpenAIEmbeddings({
+            modelName: "text-embedding-ada-002",
+            openAIApiKey: process.env.OPENAI_API_KEY,
         });
     }
 
@@ -56,6 +68,49 @@ class RagService {
             }));
         } catch (error) {
             console.error('Error chunking message:', error);
+            throw error;
+        }
+    }
+
+    async generateEmbeddings(messages) {
+        console.log(`Generating embeddings for ${messages.length} messages/chunks...`);
+        const embeddings = [];
+
+        try {
+            // Process messages in batches to avoid rate limits
+            const batchSize = 20;
+            for (let i = 0; i < messages.length; i += batchSize) {
+                const batch = messages.slice(i, i + batchSize);
+                console.log(`Processing batch ${i / batchSize + 1}/${Math.ceil(messages.length / batchSize)}`);
+
+                // Generate embeddings for the batch
+                const batchEmbeddings = await Promise.all(
+                    batch.map(async (message) => {
+                        const vector = await this.embeddings.embedQuery(message.content);
+                        return {
+                            id: message.id,
+                            values: vector,
+                            metadata: {
+                                content: message.content,
+                                ...message.metadata
+                            }
+                        };
+                    })
+                );
+
+                embeddings.push(...batchEmbeddings);
+                console.log(`Processed ${embeddings.length}/${messages.length} messages`);
+
+                // Add a small delay between batches to respect rate limits
+                if (i + batchSize < messages.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            console.log(`Successfully generated ${embeddings.length} embeddings`);
+            return embeddings;
+        } catch (error) {
+            console.error('Error generating embeddings:', error);
             throw error;
         }
     }
