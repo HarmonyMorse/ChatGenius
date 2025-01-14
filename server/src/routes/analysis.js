@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticateJWT } from '../middleware/auth.js';
 import { createClient } from '@supabase/supabase-js';
+import analysisService from '../services/analysisService.js';
 
 const router = express.Router();
 const supabase = createClient(
@@ -64,16 +65,18 @@ router.post('/messages/:messageId', authenticateJWT, async (req, res) => {
             }
         }
 
-        // TODO: Implement message analysis logic here
-        // For now, return a placeholder response
+        // Get message context using the analysis service
+        const messageContext = await analysisService.getMessageContext(messageId);
+
+        // Return the context for now (will be replaced with actual analysis later)
         res.json({
             success: true,
-            message: 'Message analysis endpoint created',
+            message: 'Message context gathered successfully',
             data: {
-                messageId,
-                content: message.content,
-                sender: message.sender.username,
-                channel: message.channel?.name || 'Direct Message'
+                targetMessage: messageContext.targetMessage,
+                context: messageContext.context,
+                conversationType: messageContext.conversationType,
+                conversationId: messageContext.conversationId
             }
         });
 

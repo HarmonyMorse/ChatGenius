@@ -23,19 +23,19 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 ## Step 2: Gather Message Context (5 Most Recent Messages)
 
 1. Fetch Target Message by ID  
-   - [ ] Use your message service (e.g., Supabase or your DB) to select the target message record.
+   - [x] Use your message service (e.g., Supabase or your DB) to select the target message record.
 
 2. Identify the Conversation/Channel
-   - [ ] Based on the target message, determine the channel or DM.
-   - [ ] Confirm whether you need to fetch public channel messages, private channel messages, or direct messages.
+   - [x] Based on the target message, determine the channel or DM.
+   - [x] Confirm whether you need to fetch public channel messages, private channel messages, or direct messages.
 
 3. Retrieve the Last 5 Relevant Messages
-   - [ ] Query your database for the 5 most recent messages in the same conversation before the target message's timestamp.
-   - [ ] Sort them chronologically.
-   - [ ] Collect these messages (including the target message) for context.
+   - [x] Query your database for the 5 most recent messages in the same conversation before the target message's timestamp.
+   - [x] Sort them chronologically.
+   - [x] Collect these messages (including the target message) for context.
 
 4. (Optional) Chunk or Preprocess Messages
-   - [ ] If any messages are very long, optionally split them into smaller segments (via LangChain's TextSplitter).
+   - [x] If any messages are very long, optionally split them into smaller segments (via LangChain's TextSplitter).
 
 ---
 
