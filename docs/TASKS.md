@@ -166,7 +166,7 @@ Remaining tasks:
 
 2. Engagement Features
    - [ ] Message organization
-     - [ ] Create message bookmarking
+     - [x] Create message bookmarking
      - [x] Add message pinning functionality
      - [ ] Implement message categories
    - [ ] User engagement
@@ -180,6 +180,13 @@ Remaining tasks:
    - [ ] Create personalization options
    - [ ] Add context awareness features
    - [ ] Implement natural language processing
+
+2. Message Analysis System
+   - [ ] Add "Analyze" button to each message
+   - [ ] Implement message context gathering (5 most recent messages)
+   - [ ] Create AI analysis service for message interpretation
+   - [ ] Design and implement analysis results UI
+   - [ ] Add real-time analysis state feedback
 
 ## Phase 6: Deployment & Polish
 1. Deployment Setup
