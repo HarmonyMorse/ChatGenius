@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
+import { ChatOpenAI } from '@langchain/openai';
 import fetch from 'node-fetch';
 
 // Load environment variables
@@ -68,6 +69,13 @@ class RagService {
 
         // Initialize the index reference
         this.index = this.pinecone.Index(process.env.PINECONE_INDEX);
+
+        // Initialize ChatGPT model
+        this.llm = new ChatOpenAI({
+            modelName: 'gpt-3.5-turbo',
+            temperature: 0.7,
+            openAIApiKey: process.env.OPENAI_API_KEY,
+        });
 
         // Expose Supabase client
         this.supabase = supabase;
@@ -239,6 +247,99 @@ class RagService {
             return stats;
         } catch (error) {
             console.error('Error getting index stats:', error);
+            throw error;
+        }
+    }
+
+    async queryMessages(query, options = {}) {
+        const {
+            topK = 5,                    // Number of similar messages to retrieve
+            minScore = 0.7,              // Minimum similarity score (0-1)
+            includeMetadata = true,      // Whether to include metadata in results
+        } = options;
+
+        try {
+            console.log(`Querying messages with: "${query}"`);
+
+            // Generate embedding for the query
+            const queryEmbedding = await this.generate3072DimEmbedding(query);
+
+            // Search Pinecone
+            const searchResults = await this.index.query({
+                vector: queryEmbedding,
+                topK,
+                includeMetadata,
+            });
+
+            // Filter and format results
+            const relevantMessages = searchResults.matches
+                .filter(match => match.score >= minScore)
+                .map(match => ({
+                    content: match.metadata.content,
+                    metadata: {
+                        score: match.score,
+                        sender: match.metadata.sender,
+                        channel: match.metadata.channel,
+                        created_at: match.metadata.created_at,
+                        type: match.metadata.type
+                    }
+                }));
+
+            console.log(`Found ${relevantMessages.length} relevant messages`);
+            return relevantMessages;
+
+        } catch (error) {
+            console.error('Error querying messages:', error);
+            throw error;
+        }
+    }
+
+    async generateResponse(query, context) {
+        try {
+            // Construct the prompt
+            const messages = [
+                {
+                    role: 'system',
+                    content: `You are a helpful AI assistant with access to chat message history. 
+                    Use the provided message context to answer questions accurately and naturally.
+                    If the context doesn't contain relevant information, say so.
+                    Always maintain a friendly and professional tone.`
+                },
+                {
+                    role: 'user',
+                    content: `Context messages:
+                    ${context.map(msg => `[${msg.metadata.sender}]: ${msg.content}`).join('\n')}
+                    
+                    Question: ${query}`
+                }
+            ];
+
+            // Generate response
+            const response = await this.llm.invoke(messages);
+            return response.content;
+
+        } catch (error) {
+            console.error('Error generating response:', error);
+            throw error;
+        }
+    }
+
+    async askQuestion(query) {
+        try {
+            // 1. Find relevant messages
+            const relevantMessages = await this.queryMessages(query);
+
+            // 2. Generate response using context
+            const answer = await this.generateResponse(query, relevantMessages);
+
+            // 3. Return both the answer and the supporting context
+            return {
+                answer,
+                context: relevantMessages
+            };
+
+        } catch (error) {
+            console.error('Error processing question:', error);
             throw error;
         }
     }
