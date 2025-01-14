@@ -59,20 +59,20 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 ## Step 4: Construct and Send Analysis Prompt to OpenAI
 
 1. Build the Analysis Prompt  
-   - [ ] Combine the relevant context (5 messages, plus any Pinecone results) into a single prompt.  
-   - [ ] Append a system or user instruction, like "Analyze this conversation and summarize its key points."
+   - [x] Combine the relevant context (5 messages, plus any Pinecone results) into a single prompt.  
+   - [x] Append a system or user instruction, like "Analyze this conversation and summarize its key points."
 
 2. Use LangChain's Chat or Completion Models  
-   - [ ] If you need a structured approach, use ChatOpenAI from @langchain/chat_models.  
-   - [ ] For standard text completions, use the OpenAI wrapper in LangChain with your chosen model (e.g., gpt-3.5-turbo).
+   - [x] If you need a structured approach, use ChatOpenAI from @langchain/chat_models.  
+   - [x] For standard text completions, use the OpenAI wrapper in LangChain with your chosen model (e.g., gpt-4-turbo-preview).
 
 3. Configure Model Parameters  
-   - [ ] Set temperature, max_tokens, and other relevant settings.  
-   - [ ] Handle potential rate limits and retry logic if necessary.
+   - [x] Set temperature, max_tokens, and other relevant settings.  
+   - [x] Handle potential rate limits and retry logic if necessary.
 
 4. Send the Request and Parse the Response  
-   - [ ] Extract the analysis text or structured output from the model response.  
-   - [ ] Handle any error or timeout cases gracefully.
+   - [x] Extract the analysis text or structured output from the model response.  
+   - [x] Handle any error or timeout cases gracefully.
 
 ---
 

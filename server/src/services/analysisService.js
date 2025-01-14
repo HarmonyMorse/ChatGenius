@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 // Validate environment variables
@@ -39,6 +40,13 @@ class AnalysisService {
 
         // Initialize the index reference
         this.index = this.pinecone.Index(process.env.PINECONE_INDEX);
+
+        // Initialize ChatGPT model
+        this.llm = new ChatOpenAI({
+            modelName: 'gpt-4o-mini',
+            temperature: 0.7,
+            openAIApiKey: process.env.OPENAI_API_KEY,
+        });
     }
 
     // Helper to generate embeddings for a message
@@ -93,7 +101,102 @@ class AnalysisService {
         }
     }
 
+    async analyzeMessage(messageContext) {
+        try {
+            // Format the conversation context
+            const conversationText = messageContext.context
+                .map(msg => `[${msg.sender.username}]: ${msg.content}`)
+                .join('\n');
+
+            // Format similar messages if available
+            const similarMessagesText = messageContext.similarMessages
+                .map(msg => `[${msg.metadata.sender}]: ${msg.content} (Similarity: ${msg.metadata.score.toFixed(2)})`)
+                .join('\n');
+
+            // Construct the analysis prompt
+            const messages = [
+                {
+                    role: 'system',
+                    content: `You are an AI assistant analyzing chat messages. Your task is to:
+                        1. Identify the key points and themes in the conversation
+                        2. Analyze the context and tone of the discussion
+                        3. Highlight any important questions or action items
+                        4. Note any significant patterns or recurring topics
+                        5. Provide a concise summary of the discussion
+
+                        Format your response as a JSON object with the following structure:
+                        {
+                            "keyPoints": ["point1", "point2", ...],
+                            "tone": "description of conversation tone",
+                            "actionItems": ["item1", "item2", ...],
+                            "patterns": ["pattern1", "pattern2", ...],
+                            "summary": "concise summary"
+                        }
+                    `
+                },
+                {
+                    role: 'user',
+                    content: `Please analyze the following conversation:
+
+                    Recent Context:
+                    ${conversationText}
+
+                    ${messageContext.similarMessages.length > 0 ? `
+                    Related Historical Messages:
+                    ${similarMessagesText}
+                    ` : ''}
+
+                    Focus your analysis on the most recent message while considering the context.`
+                }
+            ];
+
+            // Generate analysis
+            const response = await this.llm.invoke(messages);
+
+            // Parse the JSON response
+            let analysis;
+            try {
+                analysis = JSON.parse(response.content);
+            } catch (parseError) {
+                console.error('Error parsing analysis response:', parseError);
+                throw new Error('Failed to parse analysis response');
+            }
+
+            return {
+                analysis,
+                metadata: {
+                    model: this.llm.modelName,
+                    timestamp: new Date().toISOString(),
+                    messageId: messageContext.targetMessage.id,
+                    conversationType: messageContext.conversationType,
+                    contextSize: messageContext.context.length,
+                    similarMessagesCount: messageContext.similarMessages.length
+                }
+            };
+
+        } catch (error) {
+            console.error('Error analyzing message:', error);
+            throw error;
+        }
+    }
+
     async getMessageContext(messageId) {
+        try {
+            const context = await this._getMessageContext(messageId);
+            const analysis = await this.analyzeMessage(context);
+
+            return {
+                ...context,
+                analysis
+            };
+        } catch (error) {
+            console.error('Error in getMessageContext:', error);
+            throw error;
+        }
+    }
+
+    // Rename the existing getMessageContext to _getMessageContext (private method)
+    async _getMessageContext(messageId) {
         try {
             // 1. Fetch target message with its details
             const { data: targetMessage, error: messageError } = await supabase
