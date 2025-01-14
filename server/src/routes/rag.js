@@ -1,6 +1,6 @@
 import express from 'express';
 import ragService from '../services/ragService.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateJWT } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
  * @description Ask a question using RAG (Retrieval-Augmented Generation)
  * @access Private
  */
-router.post('/ask', authenticateToken, async (req, res) => {
+router.post('/ask', authenticateJWT, async (req, res) => {
     try {
         const { query } = req.body;
 
@@ -43,7 +43,7 @@ router.post('/ask', authenticateToken, async (req, res) => {
  * @description Get statistics about the RAG system
  * @access Private
  */
-router.get('/stats', authenticateToken, async (req, res) => {
+router.get('/stats', authenticateJWT, async (req, res) => {
     try {
         const stats = await ragService.getIndexStats();
         res.json({

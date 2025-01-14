@@ -4,6 +4,7 @@ import { getUser } from '../services/auth';
 import userService from '../services/userService';
 import SearchModal from './SearchModal';
 import BookmarkedMessages from './BookmarkedMessages';
+import { useNavigate } from 'react-router-dom';
 
 function Header({ onLogout = () => { } }) {
     const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -19,6 +20,7 @@ function Header({ onLogout = () => { } }) {
     const customStatusInputRef = useRef(null);
     const cleanupAutoStatusRef = useRef(null);
     const currentUser = getUser();
+    const navigate = useNavigate();
 
     const statusColors = [
         { name: 'green', hex: '#22c55e' },
@@ -152,6 +154,15 @@ function Header({ onLogout = () => { } }) {
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
+                        <button
+                            onClick={() => navigate('/search')}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center space-x-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                            </svg>
+                            <span>Search History</span>
+                        </button>
                         <button
                             onClick={() => setShowSearchModal(true)}
                             className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
