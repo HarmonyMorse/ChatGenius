@@ -42,17 +42,17 @@ Below is a detailed breakdown of tasks for adding AI-driven analysis to each cha
 ## Step 3: Embed and Perform Similarity Search (If Needed)
 
 1. Determine if Additional Context is Required  
-   - [ ] Decide whether you want to combine the 5-message context with a broader knowledge base or entire chat history via Pinecone.
+   - [x] Decide whether you want to combine the 5-message context with a broader knowledge base or entire chat history via Pinecone.
 
 2. Embed the New Context or Query  
-   - [ ] Use your existing embedding logic (OpenAIEmbeddings) to convert each message or chunk into vectors.  
-   - [ ] If you plan to query a broader knowledge base, use the user's question or entire context block as a query embedding.
+   - [x] Use your existing embedding logic (OpenAIEmbeddings) to convert each message or chunk into vectors.  
+   - [x] If you plan to query a broader knowledge base, use the user's question or entire context block as a query embedding.
 
 3. Search Pinecone for Relevant Matching Data  
-   - [ ] Initialize Pinecone with your credentials.  
-   - [ ] Query the index (via LangChain's PineconeStore or direct Pinecone client) with your embeddings.  
-   - [ ] Retrieve the top K results (metadata and vector closeness).  
-   - [ ] Merge these results with your local 5-message context, if desired.
+   - [x] Initialize Pinecone with your credentials.  
+   - [x] Query the index (via LangChain's PineconeStore or direct Pinecone client) with your embeddings.  
+   - [x] Retrieve the top K results (metadata and vector closeness).  
+   - [x] Merge these results with your local 5-message context, if desired.
 
 ---
 

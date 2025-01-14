@@ -1,5 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { Pinecone } from '@pinecone-database/pinecone';
+
+// Validate environment variables
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('Missing OpenAI API key');
+}
+
+if (!process.env.PINECONE_API_KEY || !process.env.PINECONE_INDEX) {
+    throw new Error('Missing Pinecone credentials');
+}
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -14,6 +25,72 @@ class AnalysisService {
             chunkOverlap: 50,        // Small overlap to maintain context
             separators: ["\n\n", "\n", " ", ""],  // Common message separators
         });
+
+        // Initialize OpenAI embeddings
+        this.embeddings = new OpenAIEmbeddings({
+            modelName: "text-embedding-3-large",
+            openAIApiKey: process.env.OPENAI_API_KEY,
+        });
+
+        // Initialize Pinecone
+        this.pinecone = new Pinecone({
+            apiKey: process.env.PINECONE_API_KEY,
+        });
+
+        // Initialize the index reference
+        this.index = this.pinecone.Index(process.env.PINECONE_INDEX);
+    }
+
+    // Helper to generate embeddings for a message
+    async generateEmbedding(text) {
+        try {
+            // Generate a single embedding using text-embedding-3-large (3072 dimensions)
+            return await this.embeddings.embedQuery(text);
+        } catch (error) {
+            console.error('Error generating embedding:', error);
+            throw error;
+        }
+    }
+
+    // Search for similar messages in the conversation history
+    async findSimilarMessages(messageContent, options = {}) {
+        const {
+            topK = 3,                    // Number of similar messages to retrieve
+            minScore = 0.7,              // Minimum similarity score (0-1)
+            includeMetadata = true       // Whether to include metadata in results
+        } = options;
+
+        try {
+            // Generate embedding for the message
+            const queryEmbedding = await this.generateEmbedding(messageContent);
+
+            // Search Pinecone
+            const searchResults = await this.index.query({
+                vector: queryEmbedding,
+                topK,
+                includeMetadata
+            });
+
+            // Filter and format results
+            const relevantMessages = searchResults.matches
+                .filter(match => match.score >= minScore)
+                .map(match => ({
+                    content: match.metadata.content,
+                    metadata: {
+                        score: match.score,
+                        sender: match.metadata.sender,
+                        channel: match.metadata.channel,
+                        created_at: match.metadata.created_at,
+                        type: match.metadata.type
+                    }
+                }));
+
+            return relevantMessages;
+
+        } catch (error) {
+            console.error('Error finding similar messages:', error);
+            throw error;
+        }
     }
 
     async getMessageContext(messageId) {
@@ -86,15 +163,57 @@ class AnalysisService {
                 })
             );
 
+            // After getting processedMessages, find similar messages
+            const targetContent = processedMessages[processedMessages.length - 1].content;
+            const similarMessages = await this.findSimilarMessages(targetContent);
+
             return {
                 targetMessage,
                 context: processedMessages,
+                similarMessages,  // Add similar messages from history
                 conversationType: targetMessage.channel_id ? 'channel' : 'dm',
                 conversationId: targetMessage.channel_id || targetMessage.dm_id
             };
 
         } catch (error) {
             console.error('Error in getMessageContext:', error);
+            throw error;
+        }
+    }
+
+    // Helper to prepare a message for embedding
+    async prepareMessageForEmbedding(message) {
+        // Combine relevant fields into a single text for embedding
+        const textToEmbed = `
+            Message: ${message.content}
+            Sender: ${message.sender?.username || 'Unknown'}
+            Channel: ${message.channel?.name || 'Direct Message'}
+            Type: ${message.type || 'user'}
+        `.trim();
+
+        const vector = await this.generateEmbedding(textToEmbed);
+
+        return {
+            id: message.id,
+            values: vector,
+            metadata: {
+                content: message.content,
+                sender: message.sender?.username,
+                channel: message.channel?.name,
+                created_at: message.created_at,
+                type: message.type || 'user'
+            }
+        };
+    }
+
+    // Add a new message to the vector store
+    async indexMessage(message) {
+        try {
+            const embedding = await this.prepareMessageForEmbedding(message);
+            await this.index.upsert([embedding]);
+            return true;
+        } catch (error) {
+            console.error('Error indexing message:', error);
             throw error;
         }
     }
