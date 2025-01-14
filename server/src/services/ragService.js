@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { PineconeStore } from '@langchain/pinecone';
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +12,8 @@ dotenv.config();
 console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Found' : 'Missing');
 console.log('Supabase Service Key:', process.env.SUPABASE_SERVICE_KEY ? 'Found' : 'Missing');
 console.log('OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Found' : 'Missing');
+console.log('Pinecone API Key:', process.env.PINECONE_API_KEY ? 'Found' : 'Missing');
+console.log('Pinecone Index:', process.env.PINECONE_INDEX ? 'Found' : 'Missing');
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     throw new Error('Missing required Supabase environment variables');
@@ -17,6 +21,10 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
 
 if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OpenAI API key');
+}
+
+if (!process.env.PINECONE_API_KEY || !process.env.PINECONE_INDEX) {
+    throw new Error('Missing Pinecone credentials');
 }
 
 const supabase = createClient(
@@ -38,6 +46,26 @@ class RagService {
             modelName: "text-embedding-ada-002",
             openAIApiKey: process.env.OPENAI_API_KEY,
         });
+
+        // Initialize Pinecone client
+        this.pinecone = new Pinecone({
+            apiKey: process.env.PINECONE_API_KEY,
+        });
+
+        // Initialize the index reference
+        this.index = this.pinecone.Index(process.env.PINECONE_INDEX);
+    }
+
+    // Helper to generate 3072-dimensional embeddings
+    async generate3072DimEmbedding(text) {
+        // Generate two embeddings with slightly different prompts
+        const [embedding1, embedding2] = await Promise.all([
+            this.embeddings.embedQuery(text),
+            this.embeddings.embedQuery(text + " [context]") // Adding a suffix to get a different perspective
+        ]);
+
+        // Concatenate the two 1536-dimensional vectors
+        return [...embedding1, ...embedding2];
     }
 
     async chunkMessage(message) {
@@ -86,7 +114,7 @@ class RagService {
                 // Generate embeddings for the batch
                 const batchEmbeddings = await Promise.all(
                     batch.map(async (message) => {
-                        const vector = await this.embeddings.embedQuery(message.content);
+                        const vector = await this.generate3072DimEmbedding(message.content);
                         return {
                             id: message.id,
                             values: vector,
@@ -111,6 +139,30 @@ class RagService {
             return embeddings;
         } catch (error) {
             console.error('Error generating embeddings:', error);
+            throw error;
+        }
+    }
+
+    async upsertEmbeddings(embeddings) {
+        console.log(`Upserting ${embeddings.length} embeddings to Pinecone...`);
+
+        try {
+            // Process in batches for efficiency
+            const batchSize = 100; // Pinecone can handle larger batches
+            for (let i = 0; i < embeddings.length; i += batchSize) {
+                const batch = embeddings.slice(i, i + batchSize);
+                console.log(`Upserting batch ${i / batchSize + 1}/${Math.ceil(embeddings.length / batchSize)}`);
+
+                // Upsert the batch
+                await this.index.upsert(batch);
+
+                console.log(`Upserted ${Math.min((i + batchSize), embeddings.length)}/${embeddings.length} embeddings`);
+            }
+
+            console.log('Successfully upserted all embeddings to Pinecone');
+            return true;
+        } catch (error) {
+            console.error('Error upserting embeddings to Pinecone:', error);
             throw error;
         }
     }
@@ -159,6 +211,17 @@ class RagService {
             return processedMessages;
         } catch (error) {
             console.error('Failed to fetch messages:', error);
+            throw error;
+        }
+    }
+
+    // Helper method to get index stats
+    async getIndexStats() {
+        try {
+            const stats = await this.index.describeIndexStats();
+            return stats;
+        } catch (error) {
+            console.error('Error getting index stats:', error);
             throw error;
         }
     }
