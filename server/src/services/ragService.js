@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
+import fetch from 'node-fetch';
 
 // Load environment variables
 dotenv.config();
@@ -27,9 +28,22 @@ if (!process.env.PINECONE_API_KEY || !process.env.PINECONE_INDEX) {
     throw new Error('Missing Pinecone credentials');
 }
 
+// Configure Supabase with fetch options for Node.js
+const supabaseOptions = {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+    },
+    global: {
+        fetch: fetch,
+        headers: { 'x-custom-header': 'chat-genius' }
+    }
+};
+
 const supabase = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
+    process.env.SUPABASE_SERVICE_KEY,
+    supabaseOptions
 );
 
 class RagService {
