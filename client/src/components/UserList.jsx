@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUser } from '../services/auth';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 function UserList() {
     const [users, setUsers] = useState([]);
@@ -10,6 +10,7 @@ function UserList() {
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [existingDMs, setExistingDMs] = useState({});
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     const currentUser = getUser();
 
     useEffect(() => {
@@ -185,7 +186,7 @@ function UserList() {
     };
 
     const handleChatWithPersona = (userId) => {
-        // TODO: Implement persona chat logic
+        navigate(`/persona/${userId}`);
         setSelectedUserId(null);
     };
 

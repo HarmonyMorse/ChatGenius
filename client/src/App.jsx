@@ -4,6 +4,7 @@ import Auth from './pages/Auth';
 import Chat from './components/Chat';
 import BrowseChannels from './pages/BrowseChannels';
 import RagChatPage from './pages/RagChatPage';
+import PersonaChat from './components/PersonaChat';
 import { getToken, logout } from './services/auth';
 
 function App() {
@@ -57,6 +58,16 @@ function App() {
           element={
             isAuthenticated ? (
               <RagChatPage />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/persona/:userId"
+          element={
+            isAuthenticated ? (
+              <PersonaChat />
             ) : (
               <Navigate to="/" replace />
             )
