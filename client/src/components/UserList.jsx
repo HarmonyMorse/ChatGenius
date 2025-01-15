@@ -7,6 +7,7 @@ function UserList() {
     const [sharedChannels, setSharedChannels] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [existingDMs, setExistingDMs] = useState({});
     const currentUser = getUser();
 
     useEffect(() => {
@@ -32,6 +33,37 @@ function UserList() {
                     .eq('user_id', currentUser.id);
 
                 if (channelsError) throw channelsError;
+
+                // Get existing DMs
+                const { data: directMessages, error: dmError } = await supabase
+                    .from('direct_message_members')
+                    .select(`
+                        dm_id,
+                        direct_messages!inner (id),
+                        user_id
+                    `)
+                    .eq('user_id', currentUser.id);
+
+                if (dmError) throw dmError;
+
+                // Create a map of user IDs to their DM IDs
+                const dmMap = {};
+                if (directMessages) {
+                    for (const dm of directMessages) {
+                        // Get the other member of this DM
+                        const { data: otherMember } = await supabase
+                            .from('direct_message_members')
+                            .select('user_id')
+                            .eq('dm_id', dm.dm_id)
+                            .neq('user_id', currentUser.id)
+                            .single();
+
+                        if (otherMember) {
+                            dmMap[otherMember.user_id] = dm.dm_id;
+                        }
+                    }
+                }
+                setExistingDMs(dmMap);
 
                 // Get all users in those channels
                 const channelIds = myChannels.map(cm => cm.channel.id);
@@ -223,7 +255,7 @@ function UserList() {
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                         </svg>
-                                        Start DM
+                                        {existingDMs[user.id] ? 'Open DM' : 'Start DM'}
                                     </button>
                                     <button
                                         onClick={() => handleChatWithPersona(user.id)}
