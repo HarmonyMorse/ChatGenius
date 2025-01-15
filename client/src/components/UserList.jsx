@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUser } from '../services/auth';
+import { useSearchParams } from 'react-router-dom';
 
 function UserList() {
     const [users, setUsers] = useState([]);
@@ -8,6 +9,7 @@ function UserList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [existingDMs, setExistingDMs] = useState({});
+    const [searchParams, setSearchParams] = useSearchParams();
     const currentUser = getUser();
 
     useEffect(() => {
@@ -172,7 +174,13 @@ function UserList() {
     };
 
     const handleStartDM = (userId) => {
-        // TODO: Implement DM start logic
+        if (existingDMs[userId]) {
+            // If DM exists, open it
+            setSearchParams({ dm: existingDMs[userId] });
+        } else {
+            // If no DM exists, create one
+            setSearchParams({ user: userId });
+        }
         setSelectedUserId(null);
     };
 
