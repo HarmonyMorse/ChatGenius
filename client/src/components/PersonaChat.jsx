@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { getToken } from '../services/auth';
 import api from '../api/api';
 
 function PersonaChat() {
@@ -10,6 +9,7 @@ function PersonaChat() {
     const [persona, setPersona] = useState(null);
     const [loading, setLoading] = useState(true);
     const { userId } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadPersona = async () => {
@@ -85,18 +85,50 @@ function PersonaChat() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="flex flex-col h-screen">
+                <div className="bg-white border-b px-6 py-4">
+                    <div className="flex items-center">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            aria-label="Go back"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        <h2 className="text-lg font-semibold text-gray-900">Persona Chat</h2>
+                    </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
             </div>
         );
     }
 
     if (!persona) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="text-center">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Persona Not Found</h2>
-                    <p className="text-gray-600">This user hasn&apos;t created a persona yet.</p>
+            <div className="flex flex-col h-screen">
+                <div className="bg-white border-b px-6 py-4">
+                    <div className="flex items-center">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            aria-label="Go back"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        <h2 className="text-lg font-semibold text-gray-900">Persona Chat</h2>
+                    </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Persona Not Found</h2>
+                        <p className="text-gray-600">This user hasn&apos;t created a persona yet.</p>
+                    </div>
                 </div>
             </div>
         );
@@ -107,13 +139,24 @@ function PersonaChat() {
             {/* Header */}
             <div className="bg-white border-b px-6 py-4">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            {persona.username}&apos;s AI Persona
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Chat with an AI that mimics {persona.username}&apos;s communication style
-                        </p>
+                    <div className="flex items-center">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            aria-label="Go back"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                {persona.username}&apos;s AI Persona
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Chat with an AI that mimics {persona.username}&apos;s communication style
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
