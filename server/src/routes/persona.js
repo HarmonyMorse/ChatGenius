@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateJWT } from '../middleware/auth.js';
-import { createOrUpdatePersona, getPersona } from '../services/personaService.js';
+import { createOrUpdatePersona, getPersona, chatWithPersona } from '../services/personaService.js';
 
 const router = express.Router();
 
@@ -47,6 +47,41 @@ router.get('/:userId', authenticateJWT, async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Failed to fetch persona',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/persona/:userId/chat
+ * Chat with a user's AI persona
+ */
+router.post('/:userId/chat', authenticateJWT, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({
+                success: false,
+                error: 'Message is required'
+            });
+        }
+
+        const response = await chatWithPersona(userId, message);
+        res.json({
+            success: true,
+            response,
+            metadata: {
+                timestamp: new Date().toISOString(),
+                from_persona_user_id: userId
+            }
+        });
+    } catch (error) {
+        console.error('Error chatting with persona:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to chat with persona',
             details: error.message
         });
     }

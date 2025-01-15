@@ -133,9 +133,53 @@ async function getPersona(userId) {
     return persona;
 }
 
+/**
+ * Chat with a user's persona
+ * @param {string} personaUserId - The ID of the user whose persona to chat with
+ * @param {string} message - The message to send to the persona
+ * @returns {Promise<string>} The persona's response
+ */
+async function chatWithPersona(personaUserId, message) {
+    try {
+        // 1. Get the persona
+        const persona = await getPersona(personaUserId);
+        if (!persona) {
+            throw new Error('Persona not found');
+        }
+
+        // 2. Get some recent messages for context
+        const recentMessages = await fetchUserMessages(personaUserId, 10);
+        const messageContext = recentMessages.map(m => m.content).join('\n');
+
+        // 3. Generate response using the persona
+        const response = await chatOpenAI.invoke([
+            {
+                role: 'system',
+                content: `You are acting as ${persona.persona_name}. Here is a description of how you should communicate:
+                         ${persona.persona_description}
+                         
+                         Here are some example messages from this person to help you understand their style:
+                         ${messageContext}
+                         
+                         Respond to the user's message in a way that matches this communication style and persona.
+                         Keep responses concise and natural, as if in a real chat conversation.`
+            },
+            {
+                role: 'user',
+                content: message
+            }
+        ]);
+
+        return response.content;
+    } catch (error) {
+        throw new Error(`Error chatting with persona: ${error.message}`);
+    }
+}
+
 export {
     createOrUpdatePersona,
     getPersona,
     generatePersonaDescription,
-    fetchUserMessages
+    fetchUserMessages,
+    chatWithPersona
 }; 
