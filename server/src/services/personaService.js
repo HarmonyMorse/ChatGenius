@@ -95,7 +95,7 @@ async function createOrUpdatePersona(userId, username) {
             const { data: updatedPersona, error } = await supabase
                 .from('personas')
                 .update(personaData)
-                .eq('id', existingPersona.id)
+                .eq('user_id', userId)
                 .select()
                 .single();
 
