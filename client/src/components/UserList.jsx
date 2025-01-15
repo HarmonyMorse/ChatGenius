@@ -6,6 +6,7 @@ function UserList() {
     const [users, setUsers] = useState([]);
     const [sharedChannels, setSharedChannels] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const currentUser = getUser();
 
     useEffect(() => {
@@ -134,6 +135,20 @@ function UserList() {
         user.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const handleUserClick = (userId) => {
+        setSelectedUserId(selectedUserId === userId ? null : userId);
+    };
+
+    const handleStartDM = (userId) => {
+        // TODO: Implement DM start logic
+        setSelectedUserId(null);
+    };
+
+    const handleChatWithPersona = (userId) => {
+        // TODO: Implement persona chat logic
+        setSelectedUserId(null);
+    };
+
     return (
         <div className="mt-8">
             <div className="mb-4">
@@ -155,45 +170,73 @@ function UserList() {
             </div>
             <div className="space-y-3">
                 {filteredUsers.map((user) => (
-                    <div
-                        key={user.id}
-                        className="flex items-start space-x-3 p-3 rounded-lg bg-white shadow-sm"
-                    >
-                        <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0">
-                                {user.avatar_url && (
-                                    <img
-                                        src={user.avatar_url}
-                                        alt="avatar"
-                                        className="w-10 h-10 rounded-full"
-                                    />
+                    <div key={user.id} className="relative">
+                        <div
+                            onClick={() => handleUserClick(user.id)}
+                            className="flex items-start space-x-3 p-3 rounded-lg bg-white shadow-sm hover:bg-gray-50 cursor-pointer"
+                        >
+                            <div className="relative">
+                                <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0">
+                                    {user.avatar_url && (
+                                        <img
+                                            src={user.avatar_url}
+                                            alt="avatar"
+                                            className="w-10 h-10 rounded-full"
+                                        />
+                                    )}
+                                </div>
+                                <div
+                                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white"
+                                    style={getStatusColor(user.status)}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-baseline">
+                                    <h3 className="text-sm font-medium text-gray-900">{user.username}</h3>
+                                    <span className="ml-2 text-xs text-gray-500">
+                                        {getStatusDisplay(user.status)}
+                                    </span>
+                                </div>
+                                {sharedChannels[user.id]?.length > 0 && (
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                        {sharedChannels[user.id].map(channel => (
+                                            <span
+                                                key={channel.id}
+                                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                            >
+                                                #{channel.name}
+                                            </span>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
-                            <div
-                                className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white"
-                                style={getStatusColor(user.status)}
-                            />
                         </div>
-                        <div className="flex-1">
-                            <div className="flex items-baseline">
-                                <h3 className="text-sm font-medium text-gray-900">{user.username}</h3>
-                                <span className="ml-2 text-xs text-gray-500">
-                                    {getStatusDisplay(user.status)}
-                                </span>
-                            </div>
-                            {sharedChannels[user.id]?.length > 0 && (
-                                <div className="mt-1 flex flex-wrap gap-1">
-                                    {sharedChannels[user.id].map(channel => (
-                                        <span
-                                            key={channel.id}
-                                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                                        >
-                                            #{channel.name}
-                                        </span>
-                                    ))}
+
+                        {/* Action Menu */}
+                        {selectedUserId === user.id && (
+                            <div className="absolute right-0 bottom-full mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                <div className="py-1" role="menu">
+                                    <button
+                                        onClick={() => handleStartDM(user.id)}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                        </svg>
+                                        Start DM
+                                    </button>
+                                    <button
+                                        onClick={() => handleChatWithPersona(user.id)}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Chat with AI Persona
+                                    </button>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 ))}
                 {filteredUsers.length === 0 && (
