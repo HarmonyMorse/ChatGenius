@@ -66,29 +66,29 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
 
     return (
         <div className="group relative">
-            <div className="prose prose-sm max-w-none">
+            <div className="prose prose-sm max-w-none prose-invert">
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                        p: ({ children }) => <p className="my-1">{children}</p>,
+                        p: ({ children }) => <p className="my-1 text-accent1">{children}</p>,
                         a: ({ href, children }) => (
                             <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                                 {children}
                             </a>
                         ),
-                        ul: ({ children }) => <ul className="list-disc list-inside my-1">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal list-inside my-1">{children}</ol>,
+                        ul: ({ children }) => <ul className="list-disc list-inside my-1 text-accent1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside my-1 text-accent1">{children}</ol>,
                         code: ({ inline, children }) => (
                             inline ? (
-                                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">{children}</code>
+                                <code className="bg-secondary/10 px-1 py-0.5 rounded text-sm text-accent1">{children}</code>
                             ) : (
-                                <pre className="bg-gray-100 p-2 rounded overflow-x-auto">
-                                    <code>{children}</code>
+                                <pre className="bg-secondary/10 p-2 rounded overflow-x-auto">
+                                    <code className="text-accent1">{children}</code>
                                 </pre>
                             )
                         ),
                         blockquote: ({ children }) => (
-                            <blockquote className="border-l-4 border-gray-200 pl-4 my-2 text-gray-600">
+                            <blockquote className="border-l-4 border-secondary/20 pl-4 my-2 text-accent1/80">
                                 {children}
                             </blockquote>
                         ),

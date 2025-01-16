@@ -9,11 +9,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1D2D25',    // dark green
-        secondary: '#91524B',  // medium rose
-        accent1: '#CCD2D2',    // light gray
-        accent2: '#BA7D66',    // light rose
-        accent3: '#C09E94',    // light rose
+        primary: '#0f1923',    // darker navy
+        secondary: '#1e3a5f',  // deeper ocean blue
+        accent1: '#e3e8ed',    // soft white
+        accent2: '#6b8bb5',    // desaturated blue
+        accent3: '#60a5fa',    // adjusted light blue
       },
     },
   },
