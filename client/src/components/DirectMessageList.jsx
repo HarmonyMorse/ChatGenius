@@ -232,12 +232,6 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 <h3 className="text-sm font-semibold text-accent1 uppercase tracking-wider">
                     Direct Messages
                 </h3>
-                <button
-                    onClick={handleCreateDMClick}
-                    className="text-sm text-accent1 hover:text-black hover:bg-accent2 rounded-full w-6 h-6 flex items-center justify-center"
-                >
-                    +
-                </button>
             </div>
 
             {/* DM List */}
@@ -251,10 +245,18 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                             : 'text-accent1 hover:text-black hover:bg-accent2'
                             }`}
                     >
-                        {getDMName(dm)}
+                        <span className="mr-1">&gt;</span> {getDMName(dm)}
                     </button>
                 ))}
             </div>
+
+            {/* Add DM Button */}
+            <button
+                onClick={handleCreateDMClick}
+                className="w-full text-left px-4 py-2 mt-2 text-sm text-accent1 hover:text-black hover:bg-accent2 rounded-md flex items-center"
+            >
+                <span className="mr-1">+</span> Add Direct Message
+            </button>
 
             {/* Create DM Modal */}
             {showCreateDM && (
