@@ -650,7 +650,7 @@ function Chat({ onLogout }) {
                                                             {message.sender?.id === currentUser.id && (
                                                                 <button
                                                                     onClick={() => handleDeleteMessage(message.id)}
-                                                                    className="text-xs text-secondary hover:text-secondary/80"
+                                                                    className="text-xs text-accent2 hover:text-accent2/80"
                                                                     title="Delete message"
                                                                 >
                                                                     Delete
