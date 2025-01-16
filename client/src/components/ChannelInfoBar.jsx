@@ -12,7 +12,7 @@ function ChannelInfoBar({ channel, onViewPinnedMessages, onLeaveChannel, onChann
     };
 
     return (
-        <div className="bg-primary border-b border-secondary/20 px-6 py-3">
+        <div className="bg-[#0a131a] border-b-2 border-secondary/20 px-6 py-3 shadow-sm">
             <div className="flex justify-between items-start">
                 <div className="flex-1 min-w-0">
                     <h2 className="text-lg font-semibold text-accent1">

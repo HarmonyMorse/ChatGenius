@@ -145,7 +145,7 @@ function Header({ onLogout = () => { } }) {
     }, [isEditingCustomStatus]);
 
     return (
-        <header className="bg-primary shadow">
+        <header className="bg-[#0a131a] shadow-md border-b-2 border-secondary/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex">

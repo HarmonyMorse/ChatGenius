@@ -554,7 +554,7 @@ function Chat({ onLogout }) {
         <div className="min-h-screen bg-primary">
             <Header onLogout={onLogout} />
             <div className="flex flex-1 h-[calc(100vh-64px)]">
-                <div className="w-64 bg-primary border-r border-secondary/10">
+                <div className="w-64 bg-gradient-to-b from-[#0a131a] to-primary border-r-2 border-secondary/20 p-4">
                     <ChannelList
                         channels={channels}
                         selectedChannelId={currentChannelId}
@@ -591,7 +591,7 @@ function Chat({ onLogout }) {
                             )}
 
                             {selectedDMId && dmParticipants.length > 0 && (
-                                <div className="bg-primary border-b border-secondary/10 px-6 py-3">
+                                <div className="bg-[#0a131a] border-b border-secondary/20 px-6 py-3">
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-semibold text-accent1">
                                             {dmParticipants
@@ -617,7 +617,7 @@ function Chat({ onLogout }) {
                                 </div>
                             )}
 
-                            <div className="flex-1 overflow-y-auto p-4 bg-accent1/5">
+                            <div className="flex-1 overflow-y-auto p-4 bg-primary">
                                 {(showPinnedMessages ? pinnedMessages : messages)
                                     .filter(message => !message.parent_id)
                                     .map((message) => (
@@ -746,7 +746,7 @@ function Chat({ onLogout }) {
                     )}
                 </div>
 
-                <div className="w-64 bg-primary border-l border-secondary/10">
+                <div className="w-64 bg-gradient-to-b from-[#0a131a] to-primary border-l-2 border-secondary/20">
                     <UserList />
                 </div>
             </div>
