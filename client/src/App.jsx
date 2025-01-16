@@ -8,7 +8,7 @@ import PersonaChat from './components/PersonaChat';
 import { getToken, logout } from './services/auth';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const token = getToken();
@@ -19,6 +19,10 @@ function App() {
     logout();
     setIsAuthenticated(false);
   };
+
+  if (isAuthenticated === null) {
+    return null;
+  }
 
   return (
     <Router>

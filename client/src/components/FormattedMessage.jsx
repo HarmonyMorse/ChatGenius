@@ -24,7 +24,7 @@ function FormattedMessage({ content, file, message, onEdit, onPin }) {
                     .from('bookmarked_messages')
                     .select('message_id')
                     .eq('message_id', message.id)
-                    .single();
+                    .maybeSingle();
                 setIsBookmarked(!!data);
             } catch (error) {
                 console.error('Error checking bookmark status:', error);
