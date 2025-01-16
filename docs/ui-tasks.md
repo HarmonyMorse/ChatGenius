@@ -7,11 +7,11 @@ Below is a comprehensive checklist of UI enhancements and best practices, inspir
 ## 1. Consistent Theming and Styling
 1. Enforce a single color palette:
    - Define primary, secondary, and accent colors in a global stylesheet or Tailwind config.
-        - primary: #1D2D25 - dark green
-        - secondary: #91524B - medium rose
-        - accent1: #CCD2D2 - light gray
-        - accent2: #BA7D66 - light rose
-        - accent3: #C09E94 - light rose
+     - Primary: #0f1923 (darker navy)
+     - Secondary: #1e3a5f (deeper ocean blue) 
+     - Accent1: #e3e8ed (soft white)
+     - Accent2: #6b8bb5 (desaturated blue)
+     - Accent3: #60a5fa (adjusted light blue)
    - Replace hardcoded colors (e.g., in buttons, backgrounds, text) with these variables or classes for consistency.
 
 2. Standardize button styles:
