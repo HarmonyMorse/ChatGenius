@@ -9,14 +9,28 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
     const [showCreateDM, setShowCreateDM] = useState(false);
     const [availableUsers, setAvailableUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const currentUser = getUser();
+    const [currentUser, setCurrentUser] = useState(null);
+
+    // Separate useEffect for authentication
+    useEffect(() => {
+        const user = getUser();
+        setCurrentUser(user);
+    }, []);
 
     useEffect(() => {
+        if (!currentUser?.id) {
+            console.log('Waiting for user authentication...');
+            return;
+        }
+
         loadDirectMessages();
+
+        // Create a unique channel name for this user
+        const channelName = `direct-messages-${currentUser.id}`;
 
         // Subscribe to changes in direct_message_members table
         const channel = supabase
-            .channel('direct-messages-changes')
+            .channel(channelName)
             .on('postgres_changes',
                 {
                     event: '*',  // Listen to all events
@@ -31,28 +45,27 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
             );
 
         // Subscribe with proper error handling
-        channel.subscribe(async (status, err) => {
-            if (status === 'SUBSCRIBED') {
+        const setupSubscription = async () => {
+            try {
+                const { error } = await channel.subscribe();
+                if (error) {
+                    throw error;
+                }
                 console.log('Successfully subscribed to direct messages changes');
-            } else if (status === 'CHANNEL_ERROR') {
-                console.error('Channel subscription error:', err);
+            } catch (err) {
+                console.error('Channel subscription error:', err.message);
                 // Attempt to resubscribe after a delay
-                setTimeout(() => {
-                    console.log('Attempting to resubscribe...');
-                    channel.subscribe();
-                }, 5000);
-            } else if (status === 'TIMED_OUT') {
-                console.error('Channel subscription timed out');
-                // Attempt to resubscribe immediately
-                channel.subscribe();
+                setTimeout(setupSubscription, 5000);
             }
-        });
+        };
+
+        setupSubscription();
 
         return () => {
             console.log('Cleaning up DM subscription');
             supabase.removeChannel(channel);
         };
-    }, [currentUser.id]); // Add currentUser.id as dependency
+    }, [currentUser]); // Only depend on currentUser
 
     const loadDirectMessages = async () => {
         try {
