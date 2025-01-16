@@ -647,15 +647,6 @@ function Chat({ onLogout }) {
                                                             {message.is_edited && (
                                                                 <span className="text-accent1/40 text-xs">(edited)</span>
                                                             )}
-                                                            {message.sender?.id === currentUser.id && (
-                                                                <button
-                                                                    onClick={() => handleDeleteMessage(message.id)}
-                                                                    className="text-xs text-accent2 hover:text-accent2/80"
-                                                                    title="Delete message"
-                                                                >
-                                                                    Delete
-                                                                </button>
-                                                            )}
                                                         </div>
                                                         {editingMessageId === message.id ? (
                                                             <EditMessageForm
@@ -672,6 +663,7 @@ function Chat({ onLogout }) {
                                                                         message={message}
                                                                         onEdit={handleEditMessage}
                                                                         onPin={handlePinMessage}
+                                                                        onDelete={handleDeleteMessage}
                                                                     />
                                                                 </div>
                                                                 <div className="flex items-center space-x-4 mt-1">
