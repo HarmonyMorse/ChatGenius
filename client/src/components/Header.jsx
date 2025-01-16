@@ -145,18 +145,18 @@ function Header({ onLogout = () => { } }) {
     }, [isEditingCustomStatus]);
 
     return (
-        <header className="bg-white shadow">
+        <header className="bg-primary shadow">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <h1 className="text-xl font-bold text-gray-900">ChatGenius</h1>
+                            <h1 className="text-xl font-bold text-accent1">ChatGenius</h1>
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={() => navigate('/search')}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center space-x-2"
+                            className="px-4 py-2 text-sm font-medium text-accent1 bg-secondary/10 rounded-md hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary flex items-center space-x-2"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -165,7 +165,7 @@ function Header({ onLogout = () => { } }) {
                         </button>
                         <button
                             onClick={() => setShowSearchModal(true)}
-                            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            className="p-2 text-accent1 hover:text-accent2 focus:outline-none"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -174,7 +174,7 @@ function Header({ onLogout = () => { } }) {
 
                         <button
                             onClick={() => setShowBookmarksModal(true)}
-                            className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            className="p-2 text-accent1 hover:text-accent2 focus:outline-none"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -184,17 +184,17 @@ function Header({ onLogout = () => { } }) {
                         <div className="relative">
                             <button
                                 onClick={() => setShowStatusMenu(!showStatusMenu)}
-                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none"
+                                className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary/10 focus:outline-none"
                             >
                                 <div
                                     className="w-3 h-3 rounded-full"
                                     style={{ backgroundColor: customStatusColor }}
                                 ></div>
-                                <span className="text-sm text-gray-700">{currentUser.username}</span>
+                                <span className="text-sm text-accent1">{currentUser.username}</span>
                             </button>
 
                             {showStatusMenu && (
-                                <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                                <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-primary ring-1 ring-black ring-opacity-5">
                                     <div className="py-1" role="menu">
                                         <button
                                             onClick={() => handleStatusChange('auto')}
