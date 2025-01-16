@@ -32,8 +32,11 @@ function ChannelList({ onChannelSelect, selectedChannelId, channels, setChannels
             {channels.map((channel) => (
                 <button
                     key={channel.id}
-                    onClick={() => onChannelSelect(channel.id)}
-                    className={`w-full text-left px-2 py-1 rounded text-accent1 hover:text-black hover:bg-accent2 ${selectedChannelId === channel.id ? 'bg-accent1 text-primary' : ''}`}
+                    onClick={() => selectedChannelId !== channel.id && onChannelSelect(channel.id)}
+                    className={`w-full text-left px-2 py-1 rounded text-accent1 ${selectedChannelId === channel.id
+                        ? 'bg-accent1 text-primary'
+                        : 'hover:text-black hover:bg-accent2'
+                        }`}
                 >
                     # {channel.name}
                 </button>

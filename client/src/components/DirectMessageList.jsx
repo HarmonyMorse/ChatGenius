@@ -245,7 +245,7 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 {directMessages.map((dm) => (
                     <button
                         key={dm.id}
-                        onClick={() => onDMSelect(dm.id)}
+                        onClick={() => selectedDMId !== dm.id && onDMSelect(dm.id)}
                         className={`w-full text-left px-4 py-2 rounded-md text-sm flex items-center ${selectedDMId === dm.id
                             ? 'bg-accent1 text-primary'
                             : 'text-accent1 hover:text-black hover:bg-accent2'
