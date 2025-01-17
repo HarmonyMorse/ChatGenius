@@ -12,6 +12,7 @@ function UserList() {
     const [, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const currentUser = getUser();
+    const [menuPosition, setMenuPosition] = useState('bottom');
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -171,7 +172,21 @@ function UserList() {
     );
 
     const handleUserClick = (userId) => {
-        setSelectedUserId(selectedUserId === userId ? null : userId);
+        // If clicking the same user, just close the menu
+        if (selectedUserId === userId) {
+            setSelectedUserId(null);
+            return;
+        }
+
+        // Get the clicked element's position
+        const userCard = document.getElementById(`user-${userId}`);
+        if (userCard) {
+            const rect = userCard.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            // If space below is less than 200px (menu height + padding), position above
+            setMenuPosition(spaceBelow < 200 ? 'top' : 'bottom');
+        }
+        setSelectedUserId(userId);
     };
 
     const handleStartDM = (userId) => {
@@ -213,6 +228,7 @@ function UserList() {
                 {filteredUsers.map((user) => (
                     <div key={user.id} className="relative">
                         <div
+                            id={`user-${user.id}`}
                             onClick={() => handleUserClick(user.id)}
                             className="flex items-start space-x-3 p-3 rounded-lg bg-secondary/50 border border-secondary/10 hover:bg-secondary/60 cursor-pointer"
                         >
@@ -257,7 +273,7 @@ function UserList() {
 
                         {/* Action Menu */}
                         {selectedUserId === user.id && (
-                            <div className="absolute right-0 bottom-full mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                            <div className={`absolute ${menuPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10`}>
                                 <div className="py-1" role="menu">
                                     <button
                                         onClick={() => handleStartDM(user.id)}
