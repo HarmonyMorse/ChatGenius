@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import api from '../api/api';
+import FormattedMessage from './FormattedMessage';
 
 function PersonaChat() {
     const [messages, setMessages] = useState([]);
@@ -86,11 +87,11 @@ function PersonaChat() {
     if (loading) {
         return (
             <div className="flex flex-col h-screen">
-                <div className="bg-[#0a131a] border-b border-secondary/20 px-6 py-4">
+                <div className="bg-[#0a131a] border-b-2 border-secondary/20 px-6 py-3 shadow-sm">
                     <div className="flex items-center">
                         <button
                             onClick={() => navigate(-1)}
-                            className="mr-4 p-2 hover:bg-secondary/10 rounded-full transition-colors text-accent1"
+                            className="mr-4 p-2 hover:bg-secondary/20 rounded-full transition-colors text-accent1"
                             aria-label="Go back"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -100,8 +101,10 @@ function PersonaChat() {
                         <h2 className="text-lg font-semibold text-accent1">Persona Chat</h2>
                     </div>
                 </div>
-                <div className="flex-1 flex items-center justify-center bg-primary">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent1"></div>
+                <div className="flex-1 bg-[#0a131a] p-4">
+                    <div className="flex justify-center items-center h-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent2"></div>
+                    </div>
                 </div>
             </div>
         );
@@ -110,11 +113,11 @@ function PersonaChat() {
     if (!persona) {
         return (
             <div className="flex flex-col h-screen">
-                <div className="bg-[#0a131a] border-b border-secondary/20 px-6 py-4">
+                <div className="bg-[#0a131a] border-b-2 border-secondary/20 px-6 py-3 shadow-sm">
                     <div className="flex items-center">
                         <button
                             onClick={() => navigate(-1)}
-                            className="mr-4 p-2 hover:bg-secondary/10 rounded-full transition-colors text-accent1"
+                            className="mr-4 p-2 hover:bg-secondary/20 rounded-full transition-colors text-accent1"
                             aria-label="Go back"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -124,10 +127,10 @@ function PersonaChat() {
                         <h2 className="text-lg font-semibold text-accent1">Persona Chat</h2>
                     </div>
                 </div>
-                <div className="flex-1 flex items-center justify-center bg-primary">
+                <div className="flex-1 bg-[#0a131a] flex items-center justify-center">
                     <div className="text-center">
                         <h2 className="text-xl font-semibold text-accent1 mb-2">Persona Not Found</h2>
-                        <p className="text-accent1/60">This user hasn&apos;t created a persona yet.</p>
+                        <p className="text-accent1/80">This user hasn&apos;t created a persona yet.</p>
                     </div>
                 </div>
             </div>
@@ -136,13 +139,12 @@ function PersonaChat() {
 
     return (
         <div className="flex flex-col h-screen">
-            {/* Header */}
-            <div className="bg-[#0a131a] border-b border-secondary/20 px-6 py-4">
+            <div className="bg-[#0a131a] border-b-2 border-secondary/20 px-6 py-3 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
                         <button
                             onClick={() => navigate(-1)}
-                            className="mr-4 p-2 hover:bg-secondary/10 rounded-full transition-colors text-accent1"
+                            className="mr-4 p-2 hover:bg-secondary/20 rounded-full transition-colors text-accent1"
                             aria-label="Go back"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -150,58 +152,47 @@ function PersonaChat() {
                             </svg>
                         </button>
                         <div>
-                            <h2 className="text-lg font-semibold text-accent1">
-                                {persona.username}&apos;s AI Persona
-                            </h2>
-                            <p className="text-sm text-accent1/60 mt-1">
-                                Chat with an AI that mimics {persona.username}&apos;s communication style
-                            </p>
+                            <h2 className="text-lg font-semibold text-accent1">{persona?.username}&apos;s Persona</h2>
+                            <p className="text-sm text-accent1/80">{persona?.description}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-primary">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0a131a]">
                 {messages.map((message, index) => (
-                    <div
-                        key={index}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                        <div
-                            className={`max-w-[70%] rounded-lg px-4 py-2 ${message.role === 'user'
-                                ? 'bg-accent2 text-black'
-                                : message.role === 'error'
-                                    ? 'bg-red-900/20 text-red-400 border-l-4 border-red-500'
-                                    : 'bg-secondary/10 text-accent1'
-                                }`}
-                        >
-                            <p className="text-sm">{message.content}</p>
-                            <span className={`text-xs mt-1 block ${message.role === 'user' ? 'opacity-75' : 'text-accent1/60'}`}>
-                                {new Date(message.timestamp).toLocaleTimeString()}
-                            </span>
+                    <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[70%] ${message.role === 'user' ? 'bg-accent2 text-white' : 'bg-secondary/20 text-accent1'} rounded-lg px-4 py-2`}>
+                            <FormattedMessage
+                                content={message.content}
+                                message={{
+                                    id: index,
+                                    content: message.content,
+                                    sender: {
+                                        id: message.role === 'user' ? 'user' : persona?.id,
+                                        username: message.role === 'user' ? 'You' : persona?.username
+                                    },
+                                    timestamp: message.timestamp
+                                }}
+                            />
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Message input */}
-            <div className="border-t border-secondary/20 bg-[#0a131a] p-4">
-                <form onSubmit={handleSubmit} className="flex gap-2">
+            <div className="border-t-2 border-secondary/20 bg-[#0a131a] p-4">
+                <form onSubmit={handleSubmit} className="flex space-x-2">
                     <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your message..."
-                        className="flex-1 px-4 py-2 bg-secondary/10 border border-secondary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent2 text-accent1 placeholder-accent1/50"
+                        className="flex-1 rounded-lg bg-secondary/20 border-0 px-4 py-2 text-accent1 placeholder-accent1/50 focus:outline-none focus:ring-2 focus:ring-accent2"
                     />
                     <button
                         type="submit"
+                        className="bg-accent2 text-white px-6 py-2 rounded-lg hover:bg-accent2/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!newMessage.trim()}
-                        className={`px-6 py-2 rounded-lg font-medium ${!newMessage.trim()
-                            ? 'bg-secondary/20 text-accent1/50 cursor-not-allowed'
-                            : 'bg-accent2 text-black hover:bg-accent2/80'
-                            }`}
                     >
                         Send
                     </button>
