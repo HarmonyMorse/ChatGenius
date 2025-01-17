@@ -11,9 +11,9 @@ const router = express.Router();
 router.post('/generate', authenticateJWT, async (req, res) => {
     try {
         const userId = req.user.id;
-        const username = req.user.username;
+        const personaName = req.body.personaName;
 
-        const persona = await createOrUpdatePersona(userId, username);
+        const persona = await createOrUpdatePersona(userId, personaName);
         res.json({ success: true, persona });
     } catch (error) {
         console.error('Error generating persona:', error);
