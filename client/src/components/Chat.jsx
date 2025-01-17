@@ -556,9 +556,10 @@ function Chat({ onLogout }) {
             <div className="flex flex-1 h-[calc(100vh-64px)]">
                 <div className="w-64 bg-gradient-to-b from-[#0a131a] to-primary border-r-2 border-secondary/20 p-4">
                     <ChannelList
-                        channels={channels}
-                        selectedChannelId={currentChannelId}
                         onChannelSelect={handleChannelSelect}
+                        selectedChannelId={currentChannelId}
+                        channels={channels}
+                        setChannels={setChannels}
                     />
                     <DirectMessageList
                         selectedDMId={selectedDMId}
