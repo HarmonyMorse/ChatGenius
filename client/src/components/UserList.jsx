@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUser } from '../services/auth';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -9,10 +9,24 @@ function UserList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [existingDMs, setExistingDMs] = useState({});
+    const [menuPosition, setMenuPosition] = useState('bottom');
+    const menuRef = useRef(null);
     const [, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const currentUser = getUser();
-    const [menuPosition, setMenuPosition] = useState('bottom');
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setSelectedUserId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -273,7 +287,10 @@ function UserList() {
 
                         {/* Action Menu */}
                         {selectedUserId === user.id && (
-                            <div className={`absolute ${menuPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10`}>
+                            <div
+                                ref={menuRef}
+                                className={`absolute ${menuPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10`}
+                            >
                                 <div className="py-1" role="menu">
                                     <button
                                         onClick={() => handleStartDM(user.id)}
