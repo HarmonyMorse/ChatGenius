@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUser } from '../services/auth';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -9,9 +9,24 @@ function UserList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [existingDMs, setExistingDMs] = useState({});
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [menuPosition, setMenuPosition] = useState('bottom');
+    const menuRef = useRef(null);
+    const [, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const currentUser = getUser();
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setSelectedUserId(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -166,12 +181,26 @@ function UserList() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredUsers = users
+        .filter(user => user.username.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => a.username.localeCompare(b.username));
 
     const handleUserClick = (userId) => {
-        setSelectedUserId(selectedUserId === userId ? null : userId);
+        // If clicking the same user, just close the menu
+        if (selectedUserId === userId) {
+            setSelectedUserId(null);
+            return;
+        }
+
+        // Get the clicked element's position
+        const userCard = document.getElementById(`user-${userId}`);
+        if (userCard) {
+            const rect = userCard.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            // If space below is less than 200px (menu height + padding), position above
+            setMenuPosition(spaceBelow < 200 ? 'top' : 'bottom');
+        }
+        setSelectedUserId(userId);
     };
 
     const handleStartDM = (userId) => {
@@ -191,50 +220,53 @@ function UserList() {
     };
 
     return (
-        <div className="mt-8">
-            <div className="mb-4">
-                <h2 className="text-lg font-semibold mb-2 text-gray-900">All Users</h2>
-                <div className="relative">
+        <div className="h-full flex flex-col p-4">
+            <div className="flex-none">
+                <h2 className="text-lg font-semibold mb-2 text-accent1">All Users</h2>
+                <div className="relative mb-4">
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search users..."
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10"
+                        className="w-full px-4 py-2 border border-secondary/20 rounded-lg bg-accent1/5 text-accent1 placeholder-accent1/50 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent pl-10"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 text-accent1/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                 </div>
             </div>
-            <div className="space-y-3">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                 {filteredUsers.map((user) => (
                     <div key={user.id} className="relative">
                         <div
+                            id={`user-${user.id}`}
                             onClick={() => handleUserClick(user.id)}
-                            className="flex items-start space-x-3 p-3 rounded-lg bg-white shadow-sm hover:bg-gray-50 cursor-pointer"
+                            className="flex items-start space-x-3 p-3 rounded-lg bg-secondary/50 border border-secondary/10 hover:bg-secondary/60 cursor-pointer"
                         >
                             <div className="relative">
-                                <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0">
-                                    {user.avatar_url && (
+                                <div className="w-10 h-10 rounded-full bg-accent1 flex-shrink-0 flex items-center justify-center">
+                                    {user.avatar_url ? (
                                         <img
                                             src={user.avatar_url}
                                             alt="avatar"
                                             className="w-10 h-10 rounded-full"
                                         />
+                                    ) : (
+                                        <span className="text-primary">{user.username[0].toUpperCase()}</span>
                                     )}
                                 </div>
                                 <div
-                                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white"
+                                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-primary"
                                     style={getStatusColor(user.status)}
                                 />
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline">
-                                    <h3 className="text-sm font-medium text-gray-900">{user.username}</h3>
-                                    <span className="ml-2 text-xs text-gray-500">
+                                    <h3 className="text-sm font-medium text-accent1">{user.username}</h3>
+                                    <span className="ml-2 text-xs text-accent1/60">
                                         {getStatusDisplay(user.status)}
                                     </span>
                                 </div>
@@ -243,7 +275,7 @@ function UserList() {
                                         {sharedChannels[user.id].map(channel => (
                                             <span
                                                 key={channel.id}
-                                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary/10 text-accent1"
                                             >
                                                 #{channel.name}
                                             </span>
@@ -255,7 +287,10 @@ function UserList() {
 
                         {/* Action Menu */}
                         {selectedUserId === user.id && (
-                            <div className="absolute right-0 bottom-full mb-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                            <div
+                                ref={menuRef}
+                                className={`absolute ${menuPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10`}
+                            >
                                 <div className="py-1" role="menu">
                                     <button
                                         onClick={() => handleStartDM(user.id)}

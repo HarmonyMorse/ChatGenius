@@ -229,15 +229,9 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
     return (
         <div className="mt-6">
             <div className="flex justify-between items-center mb-2 px-2">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                <h3 className="text-sm font-semibold text-accent1 uppercase tracking-wider">
                     Direct Messages
                 </h3>
-                <button
-                    onClick={handleCreateDMClick}
-                    className="text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center"
-                >
-                    +
-                </button>
             </div>
 
             {/* DM List */}
@@ -245,57 +239,52 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                 {directMessages.map((dm) => (
                     <button
                         key={dm.id}
-                        onClick={() => onDMSelect(dm.id)}
+                        onClick={() => selectedDMId !== dm.id && onDMSelect(dm.id)}
                         className={`w-full text-left px-4 py-2 rounded-md text-sm flex items-center ${selectedDMId === dm.id
-                            ? 'bg-blue-100 text-blue-900'
-                            : 'text-gray-700 hover:bg-gray-100'
+                            ? 'bg-accent1 text-primary'
+                            : 'text-accent1 hover:text-black hover:bg-accent2'
                             }`}
                     >
-                        <span className="mr-2">🗨️</span>
-                        {getDMName(dm)}
+                        <span className="mr-1">&gt;</span> {getDMName(dm)}
                     </button>
                 ))}
-                {directMessages.length === 0 && (
-                    <div className="text-sm text-gray-500 italic px-4 py-2">
-                        No direct messages yet
-                    </div>
-                )}
             </div>
+
+            {/* Add DM Button */}
+            <button
+                onClick={handleCreateDMClick}
+                className="w-full text-left px-4 py-2 mt-2 text-sm text-accent1 hover:text-black hover:bg-accent2 rounded-md flex items-center"
+            >
+                <span className="mr-1">+</span> Add Direct Message
+            </button>
 
             {/* Create DM Modal */}
             {showCreateDM && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-semibold mb-4">Create Direct Message</h3>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-primary rounded-lg shadow-xl max-w-md w-full p-6">
+                        <h3 className="text-lg font-medium text-accent1 mb-4">Create Direct Message</h3>
                         <div className="mb-4">
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {selectedUsers.map(user => (
-                                    <span
-                                        key={user.id}
-                                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center"
-                                    >
-                                        {user.username}
-                                        <button
-                                            onClick={() => handleUserSelect(user)}
-                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="max-h-60 overflow-y-auto border rounded">
+                            <label className="block text-sm font-medium text-accent1 mb-2">
+                                Select Users
+                            </label>
+                            <div className="max-h-60 overflow-y-auto border border-secondary/20 rounded-md">
                                 {availableUsers.map(user => (
-                                    <button
+                                    <div
                                         key={user.id}
                                         onClick={() => handleUserSelect(user)}
-                                        className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${selectedUsers.some(u => u.id === user.id)
-                                            ? 'bg-blue-50'
-                                            : ''
+                                        className={`flex items-center p-2 cursor-pointer ${selectedUsers.some(u => u.id === user.id)
+                                            ? 'bg-accent1 text-primary'
+                                            : 'text-accent1 hover:text-black hover:bg-accent2'
                                             }`}
                                     >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedUsers.some(u => u.id === user.id)}
+                                            onChange={() => { }}
+                                            className="mr-2"
+                                        />
                                         {user.username}
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -305,14 +294,14 @@ function DirectMessageList({ onDMSelect, selectedDMId }) {
                                     setShowCreateDM(false);
                                     setSelectedUsers([]);
                                 }}
-                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                className="px-4 py-2 text-sm text-accent1 hover:text-black hover:bg-accent2 rounded-md"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreateDM}
                                 disabled={selectedUsers.length === 0}
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                                className="px-4 py-2 text-sm text-accent1 bg-secondary hover:bg-accent2 hover:text-black rounded-md disabled:opacity-50"
                             >
                                 Create
                             </button>

@@ -21,8 +21,8 @@ import channelService from '../services/channelService';
 
 const systemMessageStyles = {
     container: 'flex items-center justify-center py-2',
-    content: 'text-gray-500 text-sm flex items-center space-x-2',
-    label: 'bg-gray-200 text-gray-600 px-2 py-0.5 rounded text-xs font-medium'
+    content: 'text-accent1 text-sm flex items-center space-x-2',
+    label: 'bg-secondary/10 text-accent1 px-2 py-0.5 rounded text-xs font-medium'
 };
 
 function Chat({ onLogout }) {
@@ -551,28 +551,22 @@ function Chat({ onLogout }) {
     }, [searchParams]);
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-primary">
             <Header onLogout={onLogout} />
             <div className="flex flex-1 h-[calc(100vh-64px)]">
-                {/* Sidebar */}
-                <div className="w-64 bg-gray-50 border-r overflow-y-auto">
-                    <div className="p-4">
-                        <h2 className="text-lg font-semibold mb-4 text-gray-900">Channels</h2>
-                        <ChannelList
-                            onChannelSelect={handleChannelSelect}
-                            selectedChannelId={currentChannelId}
-                            channels={channels}
-                            setChannels={setChannels}
-                        />
-                        <DirectMessageList
-                            onDMSelect={handleDMSelect}
-                            selectedDMId={selectedDMId}
-                        />
-                        <UserList />
-                    </div>
+                <div className="w-64 bg-gradient-to-b from-[#0a131a] to-primary border-r-2 border-secondary/20 p-4">
+                    <ChannelList
+                        onChannelSelect={handleChannelSelect}
+                        selectedChannelId={currentChannelId}
+                        channels={channels}
+                        setChannels={setChannels}
+                    />
+                    <DirectMessageList
+                        selectedDMId={selectedDMId}
+                        onDMSelect={handleDMSelect}
+                    />
                 </div>
 
-                {/* Main chat area */}
                 <div className="flex-1 flex">
                     {activeThread ? (
                         <ThreadView
@@ -587,7 +581,6 @@ function Chat({ onLogout }) {
                         />
                     ) : (
                         <div className="flex-1 flex flex-col">
-                            {/* Channel info bar */}
                             {!selectedDMId && currentChannel && (
                                 <ChannelInfoBar
                                     channel={currentChannel}
@@ -599,9 +592,9 @@ function Chat({ onLogout }) {
                             )}
 
                             {selectedDMId && dmParticipants.length > 0 && (
-                                <div className="bg-white border-b px-6 py-3">
+                                <div className="bg-[#0a131a] border-b border-secondary/20 px-6 py-3">
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-semibold text-gray-900">
+                                        <h2 className="text-lg font-semibold text-accent1">
                                             {dmParticipants
                                                 .filter(p => p.id !== currentUser.id)
                                                 .map(p => p.username)
@@ -611,8 +604,8 @@ function Chat({ onLogout }) {
                                             <button
                                                 onClick={() => handleViewPinnedMessages(!showPinnedMessages)}
                                                 className={`flex items-center space-x-2 px-3 py-1 rounded-md text-sm ${showPinnedMessages
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'text-gray-600 hover:bg-gray-100'
+                                                    ? 'bg-secondary/20 text-secondary'
+                                                    : 'text-accent1/60 hover:bg-secondary/10'
                                                     }`}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -625,47 +618,35 @@ function Chat({ onLogout }) {
                                 </div>
                             )}
 
-                            {/* Messages area */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div className="flex-1 overflow-y-auto p-4 bg-primary">
                                 {(showPinnedMessages ? pinnedMessages : messages)
-                                    .filter(message => !message.parent_id) // Only show messages that are not replies
+                                    .filter(message => !message.parent_id)
                                     .map((message) => (
-                                        <div key={message.id} className={message.type === 'system' ? systemMessageStyles.container : 'flex items-start space-x-3'}>
+                                        <div key={message.id} className={message.type === 'system' ? systemMessageStyles.container : 'mb-4'}>
                                             {message.type === 'system' ? (
                                                 <div className={systemMessageStyles.content}>
                                                     <span className={systemMessageStyles.label}>System</span>
                                                     <span>{message.content}</span>
                                                 </div>
                                             ) : (
-                                                <>
-                                                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0">
-                                                        {message.sender?.avatar_url && (
-                                                            <img
-                                                                src={message.sender.avatar_url}
-                                                                alt="avatar"
-                                                                className="w-8 h-8 rounded-full"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center space-x-2">
-                                                            <span className="font-semibold text-sm">
-                                                                {message.sender?.username || 'Unknown User'}
+                                                <div className="flex items-start space-x-3">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                                                            <span className="text-accent1 text-sm">
+                                                                {message.sender.username[0].toUpperCase()}
                                                             </span>
-                                                            <span className="text-xs text-gray-500">
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-accent2 font-medium">
+                                                                {message.sender.username}
+                                                            </span>
+                                                            <span className="text-accent1/60 text-sm">
                                                                 {new Date(message.created_at).toLocaleTimeString()}
                                                             </span>
                                                             {message.is_edited && (
-                                                                <span className="text-xs text-gray-400">(edited)</span>
-                                                            )}
-                                                            {message.sender?.id === currentUser.id && (
-                                                                <button
-                                                                    onClick={() => handleDeleteMessage(message.id)}
-                                                                    className="text-xs text-red-500 hover:text-red-700"
-                                                                    title="Delete message"
-                                                                >
-                                                                    Delete
-                                                                </button>
+                                                                <span className="text-accent1/40 text-xs">(edited)</span>
                                                             )}
                                                         </div>
                                                         {editingMessageId === message.id ? (
@@ -676,7 +657,16 @@ function Chat({ onLogout }) {
                                                             />
                                                         ) : (
                                                             <>
-                                                                <FormattedMessage content={message.content} file={message.file} message={message} onEdit={handleEditMessage} onPin={handlePinMessage} />
+                                                                <div className="mt-1 text-accent1">
+                                                                    <FormattedMessage
+                                                                        content={message.content}
+                                                                        file={message.file}
+                                                                        message={message}
+                                                                        onEdit={handleEditMessage}
+                                                                        onPin={handlePinMessage}
+                                                                        onDelete={handleDeleteMessage}
+                                                                    />
+                                                                </div>
                                                                 <div className="flex items-center space-x-4 mt-1">
                                                                     <MessageReactions
                                                                         reactions={message.reactions}
@@ -686,7 +676,7 @@ function Chat({ onLogout }) {
                                                                     {!message.parent_id && (
                                                                         <button
                                                                             onClick={() => setActiveThread(message)}
-                                                                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                                                                            className="text-xs text-accent1/60 hover:text-accent1/80 flex items-center space-x-1"
                                                                         >
                                                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                                 <path fillRule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -700,22 +690,21 @@ function Chat({ onLogout }) {
                                                             </>
                                                         )}
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
                                 {typingUsers.length > 0 && (
-                                    <div className="text-sm text-gray-500 italic">
+                                    <div className="text-accent1/60 text-sm italic">
                                         {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
                                     </div>
                                 )}
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Message input */}
-                            <form onSubmit={handleSubmit} className="p-4 border-t">
-                                <div className="flex flex-col space-y-2">
-                                    <div className="flex space-x-4">
+                            <div className="p-4 border-t border-secondary/10 bg-primary">
+                                <form onSubmit={handleSubmit} className="flex flex-col space-y-2">
+                                    <div className="flex space-x-3">
                                         <input
                                             type="text"
                                             value={newMessage}
@@ -724,7 +713,7 @@ function Chat({ onLogout }) {
                                                 handleTyping();
                                             }}
                                             placeholder="Type a message... (supports Markdown formatting)"
-                                            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="flex-1 rounded-lg border border-secondary/20 px-4 py-2 bg-accent1/5 text-accent1 placeholder-accent1/50 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
                                         />
                                         <input
                                             type="file"
@@ -735,7 +724,7 @@ function Chat({ onLogout }) {
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                            className="px-4 py-2 bg-secondary/10 text-accent1 rounded-lg hover:bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-secondary"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clipRule="evenodd" />
@@ -744,7 +733,7 @@ function Chat({ onLogout }) {
                                         <button
                                             type="submit"
                                             disabled={!newMessage.trim()}
-                                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                            className="px-4 py-2 bg-secondary text-accent1 rounded-lg hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:opacity-50"
                                         >
                                             Send
                                         </button>
@@ -752,10 +741,14 @@ function Chat({ onLogout }) {
                                     <div className="flex justify-end">
                                         <FormattingGuide />
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     )}
+                </div>
+
+                <div className="w-64 bg-gradient-to-b from-[#0a131a] to-primary border-l-2 border-secondary/20">
+                    <UserList />
                 </div>
             </div>
         </div>

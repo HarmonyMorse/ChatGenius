@@ -32,8 +32,11 @@ function ChannelList({ onChannelSelect, selectedChannelId, channels, setChannels
             {channels.map((channel) => (
                 <button
                     key={channel.id}
-                    onClick={() => onChannelSelect(channel.id)}
-                    className={`w-full text-left px-2 py-1 rounded hover:bg-gray-200 ${selectedChannelId === channel.id ? 'bg-gray-200' : ''}`}
+                    onClick={() => selectedChannelId !== channel.id && onChannelSelect(channel.id)}
+                    className={`w-full text-left px-2 py-1 rounded text-accent1 ${selectedChannelId === channel.id
+                        ? 'bg-accent1 text-primary'
+                        : 'hover:text-black hover:bg-accent2'
+                        }`}
                 >
                     # {channel.name}
                 </button>
@@ -43,25 +46,25 @@ function ChannelList({ onChannelSelect, selectedChannelId, channels, setChannels
             <div className="relative">
                 <button
                     onClick={handleAddClick}
-                    className="w-full text-left px-2 py-1 rounded hover:bg-gray-200 text-gray-600 flex items-center"
+                    className="w-full text-left px-2 py-1 rounded text-accent1 hover:text-black hover:bg-accent2 flex items-center"
                 >
                     <span className="mr-1">+</span> Add Channels
                 </button>
 
                 {/* Add Options Dropdown */}
                 {showAddOptions && (
-                    <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-primary ring-1 ring-black ring-opacity-5">
                         <div className="py-1" role="menu">
                             <button
                                 onClick={handleBrowseClick}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                className="block w-full text-left px-4 py-2 text-sm text-accent1 hover:text-black hover:bg-accent2"
                                 role="menuitem"
                             >
                                 Browse Channels
                             </button>
                             <button
                                 onClick={handleCreateClick}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                className="block w-full text-left px-4 py-2 text-sm text-accent1 hover:text-black hover:bg-accent2"
                                 role="menuitem"
                             >
                                 Create Channel

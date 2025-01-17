@@ -198,38 +198,42 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
     };
 
     return (
-        <div className="flex flex-col h-full w-full bg-white">
+        <div className="flex flex-col h-full w-full bg-primary">
             {/* Thread header */}
-            <div className="p-4 border-b flex justify-between items-center bg-white">
+            <div className="p-4 border-b-2 border-secondary/20 flex justify-between items-center bg-[#0a131a] shadow-md">
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-accent1 hover:text-accent2"
                     >
                         ←
                     </button>
-                    <h3 className="text-lg font-semibold">Thread</h3>
+                    <h3 className="text-lg font-semibold text-accent1">Thread</h3>
                 </div>
             </div>
 
             {/* Parent message */}
-            <div className="p-6 border-b bg-gray-50">
+            <div className="p-6 border-b-2 border-secondary/20 bg-secondary/10">
                 <div className="flex items-start space-x-3 max-w-3xl mx-auto">
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0">
-                        {parentMessage.sender?.avatar_url && (
+                    <div className="w-10 h-10 rounded-full bg-secondary/20 flex-shrink-0 flex items-center justify-center">
+                        {parentMessage.sender?.avatar_url ? (
                             <img
                                 src={parentMessage.sender.avatar_url}
                                 alt="avatar"
                                 className="w-10 h-10 rounded-full"
                             />
+                        ) : (
+                            <span className="text-accent1 text-lg font-medium">
+                                {parentMessage.sender?.username?.[0].toUpperCase()}
+                            </span>
                         )}
                     </div>
                     <div className="flex-1">
                         <div className="flex items-center space-x-2">
-                            <span className="font-semibold text-sm">
+                            <span className="font-semibold text-sm text-accent1">
                                 {parentMessage.sender?.username || 'Unknown User'}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-accent1/50">
                                 {new Date(parentMessage.created_at).toLocaleTimeString()}
                             </span>
                         </div>
@@ -244,34 +248,38 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             </div>
 
             {/* Replies */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div className="max-w-3xl mx-auto space-y-6">
                     {replies.map((reply) => (
                         <div key={reply.id} className="flex items-start space-x-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0">
-                                {reply.sender?.avatar_url && (
+                            <div className="w-10 h-10 rounded-full bg-secondary/20 flex-shrink-0 flex items-center justify-center">
+                                {reply.sender?.avatar_url ? (
                                     <img
                                         src={reply.sender.avatar_url}
                                         alt="avatar"
                                         className="w-10 h-10 rounded-full"
                                     />
+                                ) : (
+                                    <span className="text-accent1 text-lg font-medium">
+                                        {reply.sender?.username?.[0].toUpperCase()}
+                                    </span>
                                 )}
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center space-x-2">
-                                    <span className="font-semibold text-sm">
+                                    <span className="font-semibold text-sm text-accent1">
                                         {reply.sender?.username || 'Unknown User'}
                                     </span>
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-accent1/50">
                                         {new Date(reply.created_at).toLocaleTimeString()}
                                     </span>
                                     {reply.is_edited && (
-                                        <span className="text-xs text-gray-400">(edited)</span>
+                                        <span className="text-xs text-accent1/40">(edited)</span>
                                     )}
                                     {reply.sender?.id === currentUser.id && (
                                         <button
                                             onClick={() => handleDeleteReply(reply.id)}
-                                            className="text-xs text-red-500 hover:text-red-700"
+                                            className="text-xs text-accent2 hover:text-accent2/80"
                                             title="Delete reply"
                                         >
                                             Delete
@@ -296,7 +304,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                         </div>
                     ))}
                     {typingUsers.length > 0 && (
-                        <div className="text-sm text-gray-500 italic">
+                        <div className="text-sm text-accent1/50 italic">
                             {typingUsers.map(user => user.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
                         </div>
                     )}
@@ -305,7 +313,7 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
             </div>
 
             {/* Reply input */}
-            <div className="border-t bg-white">
+            <div className="border-t-2 border-secondary/20 bg-[#0a131a]">
                 <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-4">
                     <div className="flex space-x-4">
                         <input
@@ -316,12 +324,12 @@ function ThreadView({ parentMessage, onClose, onParentReactionUpdate }) {
                                 handleTyping();
                             }}
                             placeholder="Reply to thread..."
-                            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-4 py-2 bg-secondary/10 border border-secondary/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent2 text-accent1 placeholder-accent1/50"
                         />
                         <button
                             type="submit"
                             disabled={!newReply.trim()}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                            className="px-6 py-2 bg-accent2 text-black rounded-lg hover:bg-accent2/80 focus:outline-none focus:ring-2 focus:ring-accent2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Reply
                         </button>

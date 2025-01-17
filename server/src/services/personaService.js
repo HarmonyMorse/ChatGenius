@@ -61,10 +61,10 @@ async function generatePersonaDescription(messages) {
 /**
  * Creates or updates a user's persona
  * @param {string} userId - The user's ID
- * @param {string} username - The user's username
+ * @param {string} personaName - The persona's name
  * @returns {Promise<Object>} The created/updated persona
  */
-async function createOrUpdatePersona(userId, username) {
+async function createOrUpdatePersona(userId, personaName) {
     try {
         // 1. Fetch user's recent messages
         const messages = await fetchUserMessages(userId);
@@ -86,7 +86,7 @@ async function createOrUpdatePersona(userId, username) {
         // 4. Create or update the persona
         const personaData = {
             user_id: userId,
-            persona_name: `${username}'s Persona`,
+            persona_name: `${persona_name}`,
             persona_description: personaDescription
         };
 
@@ -156,13 +156,13 @@ async function chatWithPersona(personaUserId, message) {
             {
                 role: 'system',
                 content: `You are acting as ${persona.persona_name}. Here is a description of how you should communicate:
-                         ${persona.persona_description}
-                         
-                         Here are some example messages from this person to help you understand their style:
-                         ${messageContext}
-                         
-                         Respond to the user's message in a way that matches this communication style and persona.
-                         Keep responses concise and natural, as if in a real chat conversation.`
+                        ${persona.persona_description}
+                        
+                        Here are some example messages from this person to help you understand their style:
+                        ${messageContext}
+                        
+                        Respond to the user's message in a way that matches this communication style and persona.
+                        Keep responses concise and natural, as if in a real chat conversation.`
             },
             {
                 role: 'user',
