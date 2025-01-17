@@ -181,9 +181,9 @@ function UserList() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredUsers = users
+        .filter(user => user.username.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => a.username.localeCompare(b.username));
 
     const handleUserClick = (userId) => {
         // If clicking the same user, just close the menu
