@@ -203,7 +203,7 @@ function Header({ onLogout = () => { } }) {
                                         <div className="py-1" role="menu">
                                             <button
                                                 onClick={() => handleStatusChange('auto')}
-                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                             >
                                                 <div className="flex items-center">
                                                     <div className="w-2 h-2 rounded-full mr-2 bg-gradient-to-r from-green-500 to-yellow-500" />
@@ -213,7 +213,7 @@ function Header({ onLogout = () => { } }) {
                                             </button>
                                             <button
                                                 onClick={() => handleStatusChange('online')}
-                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                             >
                                                 <div className="flex items-center">
                                                     <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#22c55e' }} />
@@ -223,7 +223,7 @@ function Header({ onLogout = () => { } }) {
                                             </button>
                                             <button
                                                 onClick={() => handleStatusChange('away')}
-                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                             >
                                                 <div className="flex items-center">
                                                     <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#eab308' }} />
@@ -233,7 +233,7 @@ function Header({ onLogout = () => { } }) {
                                             </button>
                                             <button
                                                 onClick={() => handleStatusChange('busy')}
-                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                             >
                                                 <div className="flex items-center">
                                                     <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#ef4444' }} />
@@ -243,7 +243,7 @@ function Header({ onLogout = () => { } }) {
                                             </button>
                                             <button
                                                 onClick={() => handleStatusChange('offline')}
-                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="flex items-center justify-between w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                             >
                                                 <div className="flex items-center">
                                                     <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#6b7280' }} />
@@ -260,14 +260,14 @@ function Header({ onLogout = () => { } }) {
                                                         value={customStatus}
                                                         onChange={(e) => setCustomStatus(e.target.value)}
                                                         placeholder="What's on your mind?"
-                                                        className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:border-blue-500"
+                                                        className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:border-blue-500 bg-secondary/10 text-accent1"
                                                         maxLength={50}
                                                     />
                                                     <div className="mt-2">
                                                         <button
                                                             type="button"
                                                             onClick={() => setShowColorPicker(!showColorPicker)}
-                                                            className="flex items-center text-sm text-gray-600 hover:text-gray-800"
+                                                            className="flex items-center text-sm text-accent1 hover:text-accent2"
                                                         >
                                                             <div className={`w-4 h-4 rounded-full mr-2`} style={{ backgroundColor: customStatusColor }} />
                                                             Choose color
@@ -286,14 +286,14 @@ function Header({ onLogout = () => { } }) {
                                                                     ))}
                                                                 </div>
                                                                 <div className="flex items-center mt-2">
-                                                                    <span className="text-xs text-gray-500 mr-2">Custom:</span>
+                                                                    <span className="text-xs text-accent1 mr-2">Custom:</span>
                                                                     <input
                                                                         type="text"
                                                                         value={hexInputValue}
                                                                         onChange={handleColorChange}
                                                                         onKeyDown={handleHexKeyDown}
                                                                         placeholder="#HEX"
-                                                                        className="px-2 py-1 text-xs border rounded w-20 focus:outline-none focus:border-blue-500"
+                                                                        className="px-2 py-1 text-xs border rounded w-20 focus:outline-none focus:border-blue-500 bg-secondary/10 text-accent1"
                                                                     />
                                                                 </div>
                                                             </div>
@@ -306,7 +306,7 @@ function Header({ onLogout = () => { } }) {
                                                                 setIsEditingCustomStatus(false);
                                                                 setShowColorPicker(false);
                                                             }}
-                                                            className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800"
+                                                            className="px-2 py-1 text-xs text-accent1 hover:text-accent2"
                                                         >
                                                             Cancel
                                                         </button>
@@ -321,7 +321,7 @@ function Header({ onLogout = () => { } }) {
                                             ) : (
                                                 <button
                                                     onClick={() => setIsEditingCustomStatus(true)}
-                                                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                    className="flex items-center w-full px-4 py-2 text-sm text-accent1 hover:bg-secondary/10"
                                                 >
                                                     <div className={`w-2 h-2 rounded-full mr-2`} style={{ backgroundColor: customStatusColor }} />
                                                     {customStatus || "Set a custom status"}
@@ -329,7 +329,7 @@ function Header({ onLogout = () => { } }) {
                                             )}
                                             <div className="border-t border-gray-100 my-1" />
                                             <button
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                className="w-full text-left px-4 py-2 text-sm text-accent1 hover:bg-secondary/10 flex items-center"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -338,7 +338,7 @@ function Header({ onLogout = () => { } }) {
                                             </button>
                                             <button
                                                 onClick={onLogout}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-secondary/10"
                                             >
                                                 Sign Out
                                             </button>
